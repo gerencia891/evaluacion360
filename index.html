@@ -1,0 +1,717 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EV 360° — Mishell Fontalvo</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#1a1a2e}
+input,select,textarea{border:1px solid #d0d5dd;border-radius:8px;padding:9px 12px;font-size:13px;width:100%;outline:none;transition:border .2s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:#e8a627;box-shadow:0 0 0 3px rgba(232,166,39,.13)}
+textarea{resize:vertical;min-height:80px}
+button{font-family:inherit;cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;border:none;transition:all .18s}
+.btn-gold{background:#e8a627;color:#fff}.btn-gold:hover{background:#d4941f}
+.btn-outline{background:transparent;color:#1a1a2e;border:1.5px solid #d0d5dd}.btn-outline:hover{border-color:#e8a627;color:#e8a627}
+.btn-danger{background:#fff;color:#E24B4A;border:1.5px solid #E24B4A}
+.btn-blue{background:#185FA5;color:#fff}
+.btn-dark{background:#1a1a2e;color:#fff}
+.btn-sm{padding:5px 12px;font-size:12px}
+.card{background:#fff;border-radius:14px;border:1px solid #eee;padding:20px 22px;margin-bottom:14px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.lbl{font-size:11px;color:#888;display:block;margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.metric{background:#f8f9fa;border-radius:10px;padding:14px 16px}
+.sec-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8a627}
+.fb{border-left:3px solid #e8a627;padding:10px 14px;margin-bottom:12px;background:#fffbf0;border-radius:0 8px 8px 0}
+.fb h4{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#e8a627;margin-bottom:5px}
+.fb p{font-size:13px;line-height:1.7;color:#444}
+.chip{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;border:2px solid transparent}
+.prog{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s}
+#root{min-height:100vh}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyALCwXNrwJuc-jY_1FPPvewtyY113jf4e8",
+  authDomain: "mishell360-dc7dd.firebaseapp.com",
+  projectId: "mishell360-dc7dd",
+  storageBucket: "mishell360-dc7dd.firebasestorage.app",
+  messagingSenderId: "867252715678",
+  appId: "1:867252715678:web:8cdcb10824ce942d673b8f"
+});
+const db = firebase.firestore();
+</script>
+
+<script type="text/babel">
+const {useState, useEffect} = React;
+const GOLD="#e8a627", DARK="#1a1a2e";
+const PIN_ADMIN="mishell2026";
+const COLORS=[
+  {bg:"#E8F4FD",ac:"#1E88E5"},{bg:"#FFF3E0",ac:"#FF9800"},
+  {bg:"#E8F5E9",ac:"#43A047"},{bg:"#FCE4EC",ac:"#E91E63"},
+  {bg:"#EDE7F6",ac:"#7E57C2"},{bg:"#E0F7FA",ac:"#00ACC1"},
+  {bg:"#FFF8E1",ac:"#FFB300"},{bg:"#F3E5F5",ac:"#AB47BC"},
+  {bg:"#E8EAF6",ac:"#3949AB"},{bg:"#E0F2F1",ac:"#00897B"},
+];
+const COMP=[
+  {id:1,n:"Planificación y organización",d:"Capacidad para determinar acciones y alcanzar metas fijadas."},
+  {id:2,n:"Iniciativa",d:"Capacidad para innovar y encontrar soluciones rápidas."},
+  {id:3,n:"Disposición y actualización",d:"Facilidad para adquirir nuevos conocimientos y adaptarse."},
+  {id:4,n:"Espíritu de colaboración",d:"Cooperación en labores conjuntas más allá de sus funciones."},
+  {id:5,n:"Actitud respecto al trabajo",d:"Identificación con objetivos, normas y políticas."},
+  {id:6,n:"Relaciones interpersonales",d:"Accesibilidad, cordialidad y atención al cliente."},
+  {id:7,n:"Asistencia y puntualidad",d:"Exactitud y regularidad en la asistencia."},
+  {id:8,n:"Calidad del trabajo",d:"Cuidado en contenido, precisión y presentación."},
+  {id:9,n:"Eficacia en el trabajo",d:"Rendimiento en relación con la programación establecida."},
+  {id:10,n:"Cuidado con equipos y elementos",d:"Manejo y mantenimiento de equipos y materiales."},
+  {id:11,n:"Aplicación de conocimientos",d:"Demostración de competencias exigidas para el cargo."},
+  {id:12,n:"Compromiso institucional",d:"Asume y transmite valores organizacionales."},
+];
+const AQ=[
+  {id:"a1",t:"¿Cómo describes tu nivel de organización y planificación en el trabajo?"},
+  {id:"a2",t:"¿Con qué frecuencia propones ideas nuevas o mejoras en tus procesos?"},
+  {id:"a3",t:"¿Cómo valoras tu disposición para aprender y actualizarte?"},
+  {id:"a4",t:"¿Cómo contribuyes al trabajo en equipo y la colaboración?"},
+  {id:"a5",t:"¿Cómo describes tu actitud frente a las normas y políticas de la organización?"},
+  {id:"a6",t:"¿Cómo evalúas la calidad de tus relaciones con compañeros y clientes?"},
+  {id:"a7",t:"¿Qué tan puntual y comprometido/a eres con tu asistencia?"},
+  {id:"a8",t:"¿Cómo describes la calidad de los trabajos que entregas?"},
+  {id:"a9",t:"¿Qué tan eficaz eres cumpliendo los objetivos y metas asignadas?"},
+  {id:"a10",t:"¿Qué tanto cuidado das a los equipos y materiales de la organización?"},
+  {id:"a11",t:"¿Cómo aplicas los conocimientos técnicos requeridos por tu cargo?"},
+  {id:"a12",t:"¿Qué tan identificado/a te sientes con los valores y la misión institucional?"},
+  {id:"a13",t:"¿Cuáles consideras que son tus principales fortalezas laborales?"},
+  {id:"a14",t:"¿En qué áreas crees que puedes mejorar?"},
+  {id:"a15",t:"¿Qué metas personales tienes para el próximo semestre?"},
+];
+const ESCALA=[{v:5,l:"Excelente",c:"#0F6E56"},{v:4,l:"Bueno",c:"#185FA5"},{v:3,l:"Aceptable",c:"#BA7517"},{v:2,l:"Regular",c:"#D85A30"},{v:1,l:"Malo",c:"#993C1D"},{v:0,l:"Pésimo",c:"#A32D2D"}];
+const AE=[{v:5,l:"Muy alto"},{v:4,l:"Alto"},{v:3,l:"Medio"},{v:2,l:"Bajo"},{v:1,l:"Muy bajo"}];
+
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const uid=()=>Math.random().toString(36).slice(2,9);
+const cp=p=>p>=4.5?"#0F6E56":p>=3.5?"#185FA5":p>=2.5?"#BA7517":p>=1.5?"#D85A30":"#A32D2D";
+const lp=p=>p>=4.5?"Excelente":p>=3.5?"Bueno":p>=2.5?"Aceptable":p>=1.5?"Regular":"Malo";
+const gc=i=>COLORS[i%COLORS.length];
+
+function fb(p,n){
+  if(p>=4.5)return{e:`${n} demuestra un desempeño sobresaliente en todas las competencias evaluadas.`,r:`Destacan su planificación, calidad en la ejecución y relaciones interpersonales.`,m:`Fortalecer liderazgo y mentoría. Continuar actualizando conocimientos especializados.`,rc:`Programas de liderazgo avanzado, mentoría de pares y proyectos de alto impacto.`,h:`John Maxwell, Simon Sinek, coaching ejecutivo, cursos de facilitación.`,ex:`Se espera que mantenga este nivel y se consolide como agente de cambio positivo.`};
+  if(p>=3.5)return{e:`${n} presenta un desempeño bueno y consistente. Cumple con las expectativas del cargo.`,r:`Se resaltan colaboración, actitud respecto al trabajo y puntualidad.`,m:`Fortalecer iniciativa, innovación y aplicación de conocimientos técnicos del cargo.`,rc:`Capacitaciones, mejoras en procesos y metas de crecimiento profesional medibles.`,h:`GTD, OKRs, libros de gestión del tiempo, LinkedIn Learning, Coursera.`,ex:`Se espera que continúe creciendo y amplíe su zona de confort.`};
+  if(p>=2.5)return{e:`${n} muestra un desempeño aceptable con oportunidades claras de mejora.`,r:`Se valoran asistencia regular y disposición básica para cumplir tareas.`,m:`Trabajar en calidad, eficacia, planificación y relaciones interpersonales.`,rc:`Plan de mejora individual con metas bimestrales y talleres de habilidades blandas.`,h:`Técnica Pomodoro, matriz de Eisenhower, talleres de comunicación asertiva.`,ex:`Se espera compromiso activo con el plan de mejora y actitud proactiva.`};
+  if(p>=1.5)return{e:`${n} presenta un desempeño por debajo de lo esperado. Se requiere atención inmediata.`,r:`Se reconoce la permanencia en el cargo y la disposición de tiempo.`,m:`Trabajar urgentemente calidad del trabajo, compromiso institucional e iniciativa.`,rc:`Acompañamiento psicológico o coaching, reuniones semanales de seguimiento.`,h:`Apps de gestión de hábitos, libros de inteligencia emocional.`,ex:`Se espera una mejora significativa en el próximo período.`};
+  return{e:`${n} presenta un desempeño crítico. Se requiere intervención inmediata de RRHH.`,r:`El proceso de evaluación es un punto de partida para el cambio.`,m:`Todas las competencias requieren intervención urgente.`,rc:`Diagnóstico integral, intervención psicosocial, seguimiento semanal.`,h:`Orientación vocacional, apoyo psicológico profesional.`,ex:`Se aplican medidas de seguimiento semanal.`};
+}
+
+// Firebase
+const getAll = async col => { const s=await db.collection(col).get(); return s.docs.map(d=>({id:d.id,...d.data()})); };
+const setDoc = async (col,id,data) => db.collection(col).doc(id).set(data);
+const delDoc = async (col,id) => db.collection(col).doc(id).delete();
+
+function pdfFormato(){
+  const filas=COMP.map(c=>`<tr><td style="padding:8px;border:1px solid #ddd;font-size:11px;text-align:center;width:30px;font-weight:600">${c.id}</td><td style="padding:8px 10px;border:1px solid #ddd;font-size:11px"><b>${c.n}</b><br/><span style="color:#888;font-size:10px">${c.d}</span></td>${[5,4,3,2,1,0].map(()=>`<td style="padding:7px 5px;border:1px solid #ddd;text-align:center;width:38px"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #aaa;margin:0 auto"></div></td>`).join("")}<td style="padding:8px;border:1px solid #ddd;min-width:110px"></td></tr>`).join("");
+  const w=window.open("","_blank");
+  if(!w){alert("Permite ventanas emergentes en tu navegador");return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Formato EV360°</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#1a1a2e;padding:28px 36px}@media print{.np{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
+<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #e8a627;padding-bottom:14px;margin-bottom:18px">
+  <div><div style="font-size:22px;font-weight:700;color:#e8a627">Mishell Fontalvo</div><div style="font-size:10px;letter-spacing:3px;color:#888;margin-top:2px">PSICÓLOGA · EV 360°</div><div style="font-size:10px;color:#aaa;margin-top:3px">Evaluación de Competencias · GAD P04 F1 · V1</div></div>
+  <div style="text-align:right;font-size:11px;color:#555;line-height:2.2"><div>Fecha: ___________________________</div><div>Período: ______________ al ______________</div></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+  ${["Nombre del trabajador evaluado","Cargo del trabajador","Nombre del evaluador","Cargo / Relación con el evaluado"].map(l=>`<div style="border:1px solid #ddd;border-radius:8px;padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">${l}</div><div style="border-bottom:1px solid #bbb;min-height:24px;padding-bottom:6px"></div></div>`).join("")}
+</div>
+<div style="background:#fffbf0;border:1.5px solid #e8a627;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:11px;color:#555;line-height:1.8">
+  <strong style="color:#e8a627">Instrucciones:</strong> Marque con una X en el círculo correspondiente.<br/>
+  <strong style="color:#e8a627">Escala:</strong> 5=Excelente · 4=Bueno · 3=Aceptable · 2=Regular · 1=Malo · 0=Pésimo
+</div>
+<table style="width:100%;border-collapse:collapse;margin-bottom:18px">
+  <thead>
+    <tr style="background:#1a1a2e;color:#fff">
+      <th style="padding:7px;border:1px solid #333;font-size:10px">#</th>
+      <th style="padding:7px 10px;border:1px solid #333;font-size:10px;text-align:left">Competencia</th>
+      <th style="padding:7px 5px;border:1px solid #333;font-size:10px">5</th><th style="padding:7px 5px;border:1px solid #333;font-size:10px">4</th>
+      <th style="padding:7px 5px;border:1px solid #333;font-size:10px">3</th><th style="padding:7px 5px;border:1px solid #333;font-size:10px">2</th>
+      <th style="padding:7px 5px;border:1px solid #333;font-size:10px">1</th><th style="padding:7px 5px;border:1px solid #333;font-size:10px">0</th>
+      <th style="padding:7px 10px;border:1px solid #333;font-size:10px">Observación</th>
+    </tr>
+    <tr style="background:#f5f0e0">
+      <td style="border:1px solid #ddd"></td><td style="border:1px solid #ddd"></td>
+      ${["Excelente","Bueno","Aceptable","Regular","Malo","Pésimo"].map(l=>`<td style="padding:4px;border:1px solid #ddd;font-size:8px;color:#555;text-align:center">${l}</td>`).join("")}
+      <td style="border:1px solid #ddd"></td>
+    </tr>
+  </thead>
+  <tbody>${filas}</tbody>
+</table>
+<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:700;border-bottom:1.5px solid #e8a627;padding-bottom:4px;margin-bottom:8px">Observaciones generales</div>${Array(4).fill('<div style="border-bottom:1px solid #eee;margin-bottom:10px;min-height:16px"></div>').join("")}</div>
+<div style="display:flex;gap:14px;margin-bottom:22px">
+  <div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Sumatoria total</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div>
+  <div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Promedio (÷12)</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div>
+  <div style="border:1.5px solid #1a1a2e;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Calificación</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:100px"></div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;padding-top:18px;border-top:1px solid #ddd">
+  <div style="text-align:center"><div style="border-top:1px solid #333;margin-top:50px;margin-bottom:5px"></div><div style="font-size:10px;font-weight:600">Evaluador / Firma</div></div>
+  <div style="text-align:center"><div style="border-top:1.5px solid #e8a627;margin-top:50px;margin-bottom:5px"></div><div style="font-size:10px;font-weight:700;color:#e8a627">Mishell Fontalvo — Psicóloga</div></div>
+  <div style="text-align:center"><div style="border-top:1px solid #333;margin-top:50px;margin-bottom:5px"></div><div style="font-size:10px;font-weight:600">Firma del Evaluado</div></div>
+</div>
+<div class="np" style="position:fixed;bottom:22px;right:22px"><button onclick="window.print()" style="background:#e8a627;color:#fff;border:none;padding:11px 22px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:700">🖨️ Imprimir / PDF</button></div>
+</body></html>`);
+  w.document.close();
+}
+
+function pdfInforme(emp,ev,auto,empNombre){
+  const p360=avg(Object.values(ev.puntajes));
+  const f=fb(p360,emp.nombre);
+  const evs=ev.evaluadores||[];
+  const filas=COMP.map(c=>{
+    const p=ev.puntajes[c.id],pa=auto?.puntajes?.[c.id];
+    const e1=ESCALA.find(x=>x.v===p),e2=ESCALA.find(x=>x.v===pa);
+    const diff=(p!==undefined&&pa!==undefined)?p-pa:null;
+    const dc=diff===null?"#999":diff>0?"#0F6E56":diff<0?"#E24B4A":"#185FA5";
+    const dl=diff===null?"—":diff>0?`+${diff}▲`:diff<0?`${diff}▼`:"=Igual";
+    return `<tr><td style="padding:6px 9px;border-bottom:1px solid #eee;font-size:11px">${c.id}. ${c.n}</td><td style="padding:6px;text-align:center;font-weight:700;color:${e1?.c||"#999"};border-bottom:1px solid #eee">${p??"-"}</td>${auto?`<td style="padding:6px;text-align:center;font-weight:700;color:${e2?.c||"#999"};border-bottom:1px solid #eee">${pa??"-"}</td><td style="padding:6px;text-align:center;font-weight:600;color:${dc};border-bottom:1px solid #eee">${dl}</td>`:""}</tr>`;
+  }).join("");
+  const arows=auto?AQ.map(q=>{const v=auto.puntajes?.[q.id],r=auto.respuestas?.[q.id],e=AE.find(x=>x.v===v);return`<tr><td style="padding:6px 9px;border-bottom:1px solid #eee;font-size:11px">${q.t}</td><td style="padding:6px;text-align:center;font-weight:600;color:#185FA5;border-bottom:1px solid #eee">${v?`${v}—${e?.l||""}`:"—"}</td><td style="padding:6px 9px;font-size:11px;color:#555;border-bottom:1px solid #eee">${r||""}</td></tr>`;}).join(""):"";
+  const firmas=[...evs.map(e=>`<div style="text-align:center"><div style="border-top:1px solid #333;margin-top:44px;margin-bottom:4px"></div><div style="font-size:10px;font-weight:600">${e.nombre}</div><div style="font-size:9px;color:#888">${e.rol||"Evaluador"}</div></div>`),`<div style="text-align:center"><div style="border-top:1.5px solid #e8a627;margin-top:44px;margin-bottom:4px"></div><div style="font-size:10px;font-weight:700;color:#e8a627">Mishell Fontalvo</div><div style="font-size:9px;color:#888">Psicóloga</div></div>`,`<div style="text-align:center"><div style="border-top:1px solid #333;margin-top:44px;margin-bottom:4px"></div><div style="font-size:10px;font-weight:600">${emp.nombre}</div><div style="font-size:9px;color:#888">Evaluado/a</div></div>`];
+  const cols=firmas.length<=3?`repeat(${firmas.length},1fr)`:`repeat(3,1fr)`;
+  const w=window.open("","_blank");
+  if(!w){alert("Permite ventanas emergentes");return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Informe—${emp.nombre}</title><style>body{font-family:Georgia,serif;color:#1a1a2e;padding:28px 36px}.fb{border-left:3px solid #e8a627;padding:9px 13px;margin-bottom:11px;background:#fffbf0;border-radius:0 8px 8px 0}.fb h4{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#e8a627;margin:0 0 4px}.fb p{font-size:12px;line-height:1.8;color:#444;margin:0}.sec{font-size:13px;font-weight:700;border-bottom:2px solid #e8a627;padding-bottom:4px;margin:16px 0 10px}table{width:100%;border-collapse:collapse}th{background:#1a1a2e;color:#e8a627;padding:6px 9px;text-align:left;font-size:9px;text-transform:uppercase}@media print{.np{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
+<div style="display:flex;justify-content:space-between;border-bottom:2px solid #e8a627;padding-bottom:12px;margin-bottom:16px"><div><div style="font-size:19px;font-weight:700;color:#e8a627">Mishell Fontalvo</div><div style="font-size:9px;letter-spacing:3px;color:#888">PSICÓLOGA · INFORME EV 360°</div></div><div style="text-align:right;font-size:10px;color:#888"><div>Empresa: <b style="color:#1a1a2e">${empNombre}</b></div><div>Fecha: ${new Date().toLocaleDateString("es-CO")}</div><div>Período: ${ev.periodo_desde||""} → ${ev.periodo_hasta||""}</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px"><div style="background:#f8f9fa;border-radius:8px;padding:10px 13px"><div style="font-size:8px;color:#888;text-transform:uppercase">Trabajador</div><div style="font-size:15px;font-weight:700">${emp.nombre}</div></div><div style="background:#f8f9fa;border-radius:8px;padding:10px 13px"><div style="font-size:8px;color:#888;text-transform:uppercase">Cargo</div><div style="font-size:15px;font-weight:700">${emp.cargo}</div></div><div style="background:#1a1a2e;border-radius:8px;padding:10px 13px;text-align:center"><div style="font-size:8px;color:#e8a627;text-transform:uppercase">Promedio 360°</div><div style="font-size:28px;font-weight:700;color:${cp(p360)}">${p360.toFixed(2)}</div><div style="font-size:11px;color:#ccc">${lp(p360)}</div></div></div>
+${evs.length?`<div style="background:#f0f4ff;border:1px solid #c5d0e8;border-radius:7px;padding:9px 13px;margin-bottom:14px;font-size:10px"><b>Evaluadores:</b> ${evs.map(e=>`${e.nombre} (${e.rol||"Evaluador"})`).join(" · ")}</div>`:""}
+<div class="sec">Resultados por competencia</div>
+<table><thead><tr><th>Competencia</th><th style="text-align:center;width:65px">360°</th>${auto?`<th style="text-align:center;width:85px">Autoevaluación</th><th style="text-align:center;width:75px">Diferencia</th>`:""}</tr></thead><tbody>${filas}</tbody></table>
+<div class="sec" style="margin-top:18px">Retroalimentación</div>
+${[["Estado actual",f.e],["Lo que se resalta",f.r],["Áreas de mejora",f.m],["Recomendaciones",f.rc],["Herramientas de autoayuda",f.h],["Expectativas del líder",f.ex]].map(([t,v])=>`<div class="fb"><h4>${t}</h4><p>${v}</p></div>`).join("")}
+${ev.observaciones?`<div style="background:#fffbf0;border:1px solid #e8a627;border-radius:7px;padding:10px 13px;margin-bottom:11px"><div style="font-size:8px;color:#e8a627;font-weight:700;text-transform:uppercase;margin-bottom:3px">Observaciones</div><p style="font-size:12px;line-height:1.8;color:#555">${ev.observaciones}</p></div>`:""}
+${auto&&arows?`<div class="sec" style="margin-top:18px">Autoevaluación</div>${auto.observaciones?`<div style="background:#eef6ff;border:1px solid #185FA5;border-radius:7px;padding:10px 13px;margin-bottom:11px"><div style="font-size:8px;color:#185FA5;font-weight:700;text-transform:uppercase;margin-bottom:3px">Reflexión personal</div><p style="font-size:12px;line-height:1.8;color:#555">${auto.observaciones}</p></div>`:""}<table><thead><tr><th>Pregunta</th><th style="text-align:center;width:95px">Puntuación</th><th style="width:150px">Respuesta</th></tr></thead><tbody>${arows}</tbody></table>`:""}
+<div style="display:grid;grid-template-columns:${cols};gap:16px;margin-top:28px;padding-top:14px;border-top:1px solid #eee">${firmas.join("")}</div>
+<div class="np" style="position:fixed;bottom:18px;right:18px"><button onclick="window.print()" style="background:#e8a627;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">🖨️ Imprimir / PDF</button></div>
+</body></html>`);
+  w.document.close();
+}
+
+function App(){
+  const [empresas,setEmpresas]=useState([]);
+  const [empleados,setEmpleados]=useState([]);
+  const [evaluaciones,setEvaluaciones]=useState([]);
+  const [autoevals,setAutoevals]=useState([]);
+  const [sesion,setSesion]=useState(null);
+  const [loginPin,setLoginPin]=useState("");
+  const [loginErr,setLoginErr]=useState("");
+  const [pagina,setPagina]=useState("empresas");
+  const [empActiva,setEmpActiva]=useState(null);
+  const [empActivo,setEmpActivo]=useState(null);
+  const [openEvalId,setOpenEvalId]=useState(null);
+  const [openAutoId,setOpenAutoId]=useState(null);
+  const [editClaveId,setEditClaveId]=useState(null);
+  const [editClaveVal,setEditClaveVal]=useState("");
+  const [fTipo,setFTipo]=useState("jefe");
+  const [fDesde,setFDesde]=useState("");
+  const [fHasta,setFHasta]=useState("");
+  const [fP,setFP]=useState({});
+  const [fObs,setFObs]=useState("");
+  const [fEvals,setFEvals]=useState([{nombre:"",rol:""}]);
+  const [fMsg,setFMsg]=useState("");
+  const [editEvalId,setEditEvalId]=useState(null);
+  const [aP,setAP]=useState({});
+  const [aResp,setAResp]=useState({});
+  const [aObs,setAObs]=useState("");
+  const [aMsg,setAMsg]=useState("");
+  const [editAutoId,setEditAutoId]=useState(null);
+  const [eNombre,setENombre]=useState("");
+  const [eSector,setESector]=useState("");
+  const [eClave,setEClave]=useState("");
+  const [eMsg2,setEMsg2]=useState("");
+  const [enNombre,setEnNombre]=useState("");
+  const [enCargo,setEnCargo]=useState("");
+  const [enMsg,setEnMsg]=useState("");
+  const [loading,setLoading]=useState(true);
+
+  const loadAll=async()=>{
+    setLoading(true);
+    const [e,em,ev,au]=await Promise.all([getAll("empresas"),getAll("empleados"),getAll("evaluaciones"),getAll("autoevals")]);
+    setEmpresas(e);setEmpleados(em);setEvaluaciones(ev);setAutoevals(au);
+    setLoading(false);
+  };
+  useEffect(()=>{loadAll();},[]);
+
+  const empresa=empresas.find(e=>e.id===empActiva);
+  const empleado=empleados.find(e=>e.id===empActivo);
+  const empsDeEmp=empleados.filter(e=>e.empresa_id===empActiva);
+  const evalDeEmp=evaluaciones.filter(e=>e.empleado_id===empActivo);
+  const autoDeEmp=autoevals.filter(a=>a.empleado_id===empActivo);
+  const lastAuto=autoDeEmp[autoDeEmp.length-1];
+  const esCliente=sesion?.rol==="cliente";
+
+  const resetEval=()=>{setFTipo("jefe");setFDesde("");setFHasta("");setFP({});setFObs("");setFEvals([{nombre:"",rol:""}]);setFMsg("");setEditEvalId(null);};
+  const resetAuto=()=>{setAP({});setAResp({});setAObs("");setAMsg("");setEditAutoId(null);};
+  const irA=p=>setPagina(p);
+
+  const doLogin=()=>{
+    if(loginPin===PIN_ADMIN){setSesion({rol:"admin"});setLoginErr("");setPagina("empresas");return;}
+    const emp=empresas.find(e=>e.clave&&e.clave===loginPin);
+    if(emp){setSesion({rol:"cliente",empresaId:emp.id});setEmpActiva(emp.id);setLoginErr("");setPagina("empresa");return;}
+    setLoginErr("PIN incorrecto");
+  };
+
+  const doLogout=()=>{setSesion(null);setLoginPin("");setLoginErr("");setPagina("empresas");};
+
+  if(loading) return <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${DARK} 0%,#16213e 100%)`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:16}}>Cargando datos...</div>;
+
+  if(!sesion) return(
+    <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${DARK} 0%,#16213e 100%)`,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",borderRadius:20,padding:"40px 36px",width:"100%",maxWidth:380,boxShadow:"0 24px 60px rgba(0,0,0,.3)"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontFamily:"Georgia,serif",fontSize:26,fontWeight:700,color:GOLD}}>Mishell Fontalvo</div>
+          <div style={{fontSize:11,color:"#888",letterSpacing:3,marginTop:2}}>PSICÓLOGA</div>
+          <div style={{display:"flex",justifyContent:"center",margin:"14px 0"}}>
+            <span style={{background:`${GOLD}22`,color:GOLD,fontWeight:700,fontSize:15,letterSpacing:2,padding:"6px 18px",borderRadius:10,border:`1.5px solid ${GOLD}55`}}>EV 360°</span>
+          </div>
+          <div style={{fontSize:12,color:"#999"}}>Sistema de Evaluación de Competencias</div>
+        </div>
+        <div style={{marginBottom:16}}>
+          <span className="lbl">PIN de acceso</span>
+          <input type="password" value={loginPin} onChange={e=>setLoginPin(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} placeholder="Ingresa tu PIN"/>
+        </div>
+        {loginErr&&<div style={{fontSize:12,color:"#E24B4A",marginBottom:10,textAlign:"center"}}>{loginErr}</div>}
+        <button className="btn btn-gold" style={{width:"100%",justifyContent:"center",padding:11}} onClick={doLogin}>Ingresar</button>
+        <div style={{marginTop:12,fontSize:11,color:"#ddd",textAlign:"center"}}>Administrador o acceso de empresa</div>
+      </div>
+    </div>
+  );
+
+  const TopBar=({titulo,sub,back})=>(
+    <div style={{background:DARK,color:"#fff",padding:"0 24px",display:"flex",alignItems:"center",justifyContent:"space-between",height:58,borderBottom:`2px solid ${GOLD}`,marginBottom:24,borderRadius:"12px 12px 0 0"}}>
+      <div style={{display:"flex",alignItems:"center",gap:14}}>
+        {back&&<button className="btn btn-sm" style={{background:"transparent",color:"#ccc",border:"1px solid #444",padding:"4px 10px"}} onClick={back}>← Volver</button>}
+        <div>
+          <span style={{fontFamily:"Georgia,serif",color:GOLD,fontWeight:700,fontSize:15}}>Mishell Fontalvo</span>
+          <span style={{color:"#aaa",fontSize:11,marginLeft:6,letterSpacing:2}}>· EV 360°</span>
+          {titulo&&<span style={{color:"#fff",fontSize:13,marginLeft:12,borderLeft:"1px solid #444",paddingLeft:12}}>{titulo}</span>}
+          {sub&&<span style={{color:"#888",fontSize:11,marginLeft:8}}>{sub}</span>}
+          {esCliente&&<span style={{marginLeft:10,fontSize:10,background:"#185FA533",color:"#90CAF9",padding:"2px 8px",borderRadius:20}}>Vista cliente</span>}
+        </div>
+      </div>
+      <button className="btn btn-sm" style={{background:"transparent",color:"#aaa",border:"1px solid #444"}} onClick={doLogout}>Salir</button>
+    </div>
+  );
+
+  // ── EMPRESAS ──
+  if(pagina==="empresas") return(
+    <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+      <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
+        <TopBar titulo="Dashboard"/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
+          <div className="sec-title" style={{marginBottom:0}}>Empresas ({empresas.length})</div>
+          <div style={{display:"flex",gap:8}}>
+            <button className="btn btn-outline btn-sm" onClick={pdfFormato}>Formato físico PDF</button>
+            <button className="btn btn-gold btn-sm" onClick={()=>{setENombre("");setESector("");setEClave("");setEMsg2("");irA("nueva_empresa");}}>+ Nueva empresa</button>
+          </div>
+        </div>
+        {!empresas.length&&<div className="card" style={{textAlign:"center",color:"#bbb",padding:48}}><div style={{fontSize:36,marginBottom:10}}>🏢</div><div>Aún no hay empresas. Crea la primera.</div></div>}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:14}}>
+          {empresas.map((emp,idx)=>{
+            const c=gc(idx);
+            const ec=empleados.filter(e=>e.empresa_id===emp.id).length;
+            const ev=evaluaciones.filter(ev=>empleados.find(e=>e.empresa_id===emp.id&&e.id===ev.empleado_id)).length;
+            return(
+              <div key={emp.id} style={{background:"#fff",borderRadius:14,border:`2px solid ${c.ac}33`,padding:"20px 22px",cursor:"pointer",transition:"all .2s"}}
+                onClick={()=>{setEmpActiva(emp.id);setEmpActivo(null);irA("empresa");}}
+                onMouseEnter={e=>{e.currentTarget.style.boxShadow=`0 4px 20px ${c.ac}33`;e.currentTarget.style.borderColor=c.ac;}}
+                onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor=`${c.ac}33`;}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+                  <div style={{width:46,height:46,borderRadius:12,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16,color:c.ac}}>{emp.nombre.slice(0,2).toUpperCase()}</div>
+                  <div style={{textAlign:"right"}}>
+                    {emp.sector&&<div style={{fontSize:10,background:c.bg,color:c.ac,borderRadius:20,padding:"2px 8px",fontWeight:600,marginBottom:4}}>{emp.sector}</div>}
+                    {emp.clave?<div style={{fontSize:10,color:"#0F6E56",background:"#e1f5ee",borderRadius:20,padding:"2px 8px",fontWeight:600}}>🔑 Clave activa</div>:<div style={{fontSize:10,color:"#aaa",background:"#f5f5f5",borderRadius:20,padding:"2px 8px"}}>Sin clave</div>}
+                  </div>
+                </div>
+                <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>{emp.nombre}</div>
+                <div style={{height:3,borderRadius:2,background:c.bg,marginBottom:10,overflow:"hidden"}}><div style={{width:`${Math.min(ec*10,100)}%`,height:"100%",background:c.ac}}/></div>
+                <div style={{display:"flex",gap:14}}><span style={{fontSize:11,color:"#888"}}><b style={{color:"#1a1a2e",fontSize:14}}>{ec}</b> empleados</span><span style={{fontSize:11,color:"#888"}}><b style={{color:"#1a1a2e",fontSize:14}}>{ev}</b> evaluaciones</span></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+
+  if(pagina==="nueva_empresa") return(
+    <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+      <div style={{maxWidth:500,margin:"0 auto",padding:"24px 20px"}}>
+        <TopBar titulo="Nueva empresa" back={()=>irA("empresas")}/>
+        <div className="card">
+          <div className="sec-title">Datos de la empresa</div>
+          <div style={{marginBottom:12}}><span className="lbl">Nombre</span><input value={eNombre} onChange={e=>setENombre(e.target.value)} placeholder="Nombre de la empresa"/></div>
+          <div style={{marginBottom:12}}><span className="lbl">Sector (opcional)</span><input value={eSector} onChange={e=>setESector(e.target.value)} placeholder="Salud, Educación..."/></div>
+          <div style={{marginBottom:16}}>
+            <span className="lbl">Clave de acceso para el cliente (opcional)</span>
+            <input value={eClave} onChange={e=>setEClave(e.target.value)} placeholder="Clave para que el cliente vea sus resultados"/>
+          </div>
+          {eMsg2&&<div style={{fontSize:12,color:eMsg2.startsWith("✓")?"#0F6E56":"#E24B4A",marginBottom:10}}>{eMsg2}</div>}
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+            <button className="btn btn-outline" onClick={()=>irA("empresas")}>Cancelar</button>
+            <button className="btn btn-gold" onClick={async()=>{
+              if(!eNombre){setEMsg2("Ingresa el nombre");return;}
+              const id="emp_"+uid();
+              const data={nombre:eNombre,sector:eSector,clave:eClave.trim()||null};
+              await setDoc("empresas",id,data);
+              setEmpresas(p=>[...p,{id,...data}]);
+              setEmpActiva(id);
+              setEMsg2("✓ Empresa creada");
+              setTimeout(()=>irA("empresa"),600);
+            }}>Crear empresa</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(pagina==="empresa"&&empresa){
+    const idx=empresas.findIndex(e=>e.id===empActiva);
+    const c=gc(idx);
+    const evsCount=evaluaciones.filter(ev=>empsDeEmp.find(e=>e.id===ev.empleado_id)).length;
+    const autosCount=autoevals.filter(a=>empsDeEmp.find(e=>e.id===a.empleado_id)).length;
+    return(
+      <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+        <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
+          <TopBar titulo={empresa.nombre} sub={empresa.sector||""} back={esCliente?undefined:()=>irA("empresas")}/>
+          <div className="grid3" style={{marginBottom:20}}>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Empleados</div><div style={{fontSize:26,fontWeight:700,color:c.ac}}>{empsDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Evaluaciones 360°</div><div style={{fontSize:26,fontWeight:700,color:c.ac}}>{evsCount}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.ac}}>{autosCount}</div></div>
+          </div>
+          {!esCliente&&(
+            <div className="card" style={{padding:"14px 20px",marginBottom:14,borderLeft:`3px solid ${c.ac}`}}>
+              {editClaveId===empresa.id?(
+                <div>
+                  <div style={{fontWeight:600,fontSize:13,marginBottom:8}}>Clave de acceso</div>
+                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                    <input value={editClaveVal} onChange={e=>setEditClaveVal(e.target.value)} placeholder="Nueva clave" style={{width:200}}/>
+                    <button className="btn btn-gold btn-sm" onClick={async()=>{
+                      const nc=editClaveVal.trim()||null;
+                      await setDoc("empresas",empresa.id,{...empresa,clave:nc});
+                      setEmpresas(p=>p.map(e=>e.id===empresa.id?{...e,clave:nc}:e));
+                      setEditClaveId(null);
+                    }}>Guardar</button>
+                    <button className="btn btn-outline btn-sm" onClick={()=>setEditClaveId(null)}>Cancelar</button>
+                  </div>
+                </div>
+              ):(
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:13,marginBottom:2}}>Clave de acceso para el cliente</div>
+                    <div style={{fontSize:12,color:"#888"}}>{empresa.clave?<span>Clave activa: <b style={{color:c.ac}}>{empresa.clave}</b></span>:"Sin clave asignada."}</div>
+                  </div>
+                  <button className="btn btn-outline btn-sm" onClick={()=>{setEditClaveId(empresa.id);setEditClaveVal(empresa.clave||"");}}>{empresa.clave?"Cambiar clave":"Asignar clave"}</button>
+                </div>
+              )}
+            </div>
+          )}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div className="sec-title" style={{marginBottom:0}}>Empleados</div>
+            {!esCliente&&<button className="btn btn-sm" style={{background:c.ac,color:"#fff",border:"none"}} onClick={()=>{setEnNombre("");setEnCargo("");setEnMsg("");irA("nueva_emp");}}>+ Agregar empleado</button>}
+          </div>
+          {!empsDeEmp.length&&<div className="card" style={{textAlign:"center",color:"#bbb",padding:30,fontSize:12}}>No hay empleados.</div>}
+          {empsDeEmp.map(e=>{
+            const evs=evaluaciones.filter(ev=>ev.empleado_id===e.id);
+            const pr=evs.length?avg(evs.map(ev=>avg(Object.values(ev.puntajes)))):null;
+            return(
+              <div key={e.id} className="card" style={{cursor:"pointer",borderLeft:`3px solid ${c.ac}`}}
+                onClick={()=>{setEmpActivo(e.id);irA("empleado");}}
+                onMouseEnter={ev=>ev.currentTarget.style.boxShadow=`0 2px 12px ${c.ac}33`}
+                onMouseLeave={ev=>ev.currentTarget.style.boxShadow="none"}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{display:"flex",gap:12,alignItems:"center"}}>
+                    <div style={{width:42,height:42,borderRadius:12,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:c.ac}}>{e.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}</div>
+                    <div><div style={{fontWeight:600,fontSize:14}}>{e.nombre}</div><div style={{fontSize:12,color:"#888"}}>{e.cargo}</div></div>
+                  </div>
+                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                    {pr!==null&&<span className="badge" style={{background:cp(pr)+"22",color:cp(pr)}}>{pr.toFixed(1)} — {lp(pr)}</span>}
+                    <span style={{fontSize:12,color:c.ac,fontWeight:500}}>Ver →</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+          {!esCliente&&(
+            <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #eee",display:"flex",justifyContent:"flex-end"}}>
+              <button className="btn btn-danger btn-sm" onClick={async()=>{
+                if(!confirm(`¿Eliminar "${empresa.nombre}" y todos sus datos?`))return;
+                await delDoc("empresas",empActiva);
+                for(const e of empsDeEmp){
+                  await delDoc("empleados",e.id);
+                  for(const ev of evaluaciones.filter(x=>x.empleado_id===e.id)) await delDoc("evaluaciones",ev.id);
+                  for(const a of autoevals.filter(x=>x.empleado_id===e.id)) await delDoc("autoevals",a.id);
+                }
+                await loadAll();
+                irA("empresas");
+              }}>Eliminar empresa</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if(pagina==="nueva_emp") return(
+    <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+      <div style={{maxWidth:500,margin:"0 auto",padding:"24px 20px"}}>
+        <TopBar titulo="Nuevo empleado" back={()=>irA("empresa")}/>
+        <div className="card">
+          <div className="sec-title">Datos del empleado</div>
+          <div style={{marginBottom:12}}><span className="lbl">Nombre completo</span><input value={enNombre} onChange={e=>setEnNombre(e.target.value)} placeholder="Nombre y apellido"/></div>
+          <div style={{marginBottom:16}}><span className="lbl">Cargo</span><input value={enCargo} onChange={e=>setEnCargo(e.target.value)} placeholder="Cargo que desempeña"/></div>
+          {enMsg&&<div style={{fontSize:12,color:enMsg.startsWith("✓")?"#0F6E56":"#E24B4A",marginBottom:10}}>{enMsg}</div>}
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
+            <button className="btn btn-outline" onClick={()=>irA("empresa")}>Cancelar</button>
+            <button className="btn btn-gold" onClick={async()=>{
+              if(!enNombre||!enCargo){setEnMsg("Completa todos los campos");return;}
+              const id="per_"+uid();
+              const data={nombre:enNombre,cargo:enCargo,empresa_id:empActiva};
+              await setDoc("empleados",id,data);
+              setEmpleados(p=>[...p,{id,...data}]);
+              setEnMsg("✓ Empleado agregado");
+              setTimeout(()=>{setEmpActivo(id);irA("empleado");},600);
+            }}>Agregar empleado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  if(pagina==="empleado"&&empleado){
+    const idx=empresas.findIndex(e=>e.id===empActiva);
+    const c=gc(idx);
+    const pr=evalDeEmp.length?avg(evalDeEmp.map(ev=>avg(Object.values(ev.puntajes)))):null;
+    return(
+      <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+        <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
+          <TopBar titulo={empleado.nombre} sub={empleado.cargo} back={()=>irA("empresa")}/>
+          <div className="grid3" style={{marginBottom:20}}>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Evaluaciones 360°</div><div style={{fontSize:26,fontWeight:700,color:c.ac}}>{evalDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.ac}}>{autoDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${c.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Promedio general</div><div style={{fontSize:26,fontWeight:700,color:pr?cp(pr):"#ccc"}}>{pr?pr.toFixed(2):"—"}</div></div>
+          </div>
+
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <div className="sec-title" style={{marginBottom:0}}>Evaluaciones 360°</div>
+            {!esCliente&&<button className="btn btn-sm" style={{background:c.ac,color:"#fff",border:"none"}} onClick={()=>{resetEval();irA("nueva_eval");}}>+ Nueva evaluación</button>}
+          </div>
+          {!evalDeEmp.length&&<div className="card" style={{color:"#bbb",fontSize:13,textAlign:"center",padding:20}}>Sin evaluaciones registradas.</div>}
+          {evalDeEmp.map(ev=>{
+            const p=avg(Object.values(ev.puntajes));
+            const f=fb(p,empleado.nombre);
+            const open=openEvalId===ev.id;
+            return(
+              <div key={ev.id} className="card">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
+                  <div>
+                    <span style={{fontWeight:600,fontSize:13}}>{ev.tipo||"Evaluación 360°"}</span>
+                    <span style={{fontSize:11,color:"#aaa",marginLeft:8}}>{ev.periodo_desde} → {ev.periodo_hasta}</span>
+                    <span style={{fontSize:11,color:"#bbb",marginLeft:8}}>{ev.fecha}</span>
+                    {ev.evaluadores?.length>0&&<div style={{fontSize:11,color:"#888",marginTop:2}}>Evaluadores: {ev.evaluadores.map(e=>e.nombre).join(", ")}</div>}
+                  </div>
+                  <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                    <span className="badge" style={{background:cp(p)+"22",color:cp(p)}}>{p.toFixed(2)} — {lp(p)}</span>
+                    <button className="btn btn-outline btn-sm" onClick={()=>setOpenEvalId(open?null:ev.id)}>{open?"Ocultar":"Ver informe"}</button>
+                  </div>
+                </div>
+                {open&&(
+                  <div style={{marginTop:16,borderTop:"1px solid #f0f0f0",paddingTop:14}}>
+                    {COMP.map(c2=>{
+                      const cp2=ev.puntajes[c2.id];const ce=ESCALA.find(x=>x.v===cp2);const ap=lastAuto?.puntajes?.[c2.id];
+                      return(<div key={c2.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:7}}>
+                        <div style={{fontSize:12,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c2.id}. {c2.n}</div>
+                        <div style={{width:90,flexShrink:0}}><div className="prog"><div className="prog-fill" style={{width:`${((cp2||0)/5)*100}%`,background:ce?.c||"#eee"}}/></div></div>
+                        <span style={{fontSize:12,fontWeight:600,color:ce?.c||"#999",minWidth:28}}>{cp2??"-"}</span>
+                        {ap!==undefined&&<span style={{fontSize:11,color:"#aaa",minWidth:44}}>auto:{ap}</span>}
+                      </div>);
+                    })}
+                    <div style={{marginTop:14}}>
+                      <div className="sec-title" style={{fontSize:13}}>Retroalimentación</div>
+                      {[["Estado actual",f.e],["Lo que se resalta",f.r],["Áreas de mejora",f.m],["Recomendaciones",f.rc],["Herramientas de autoayuda",f.h],["Expectativas del líder",f.ex]].map(([t,v])=>(
+                        <div key={t} className="fb"><h4>{t}</h4><p>{v}</p></div>
+                      ))}
+                      {ev.observaciones&&<div style={{background:"#fffbf0",border:"1px solid #e8a627",borderRadius:8,padding:"10px 14px",marginBottom:12}}><div style={{fontSize:10,color:GOLD,fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Observaciones</div><p style={{fontSize:13,lineHeight:1.7,color:"#555"}}>{ev.observaciones}</p></div>}
+                    </div>
+                    <div style={{display:"flex",gap:8,marginTop:8,flexWrap:"wrap"}}>
+                      <button className="btn btn-gold btn-sm" onClick={()=>pdfInforme(empleado,ev,lastAuto,empresa?.nombre||"")}>Descargar PDF</button>
+                      {!esCliente&&<>
+                        <button className="btn btn-outline btn-sm" onClick={()=>{setFTipo(ev.tipo||"jefe");setFDesde(ev.periodo_desde||"");setFHasta(ev.periodo_hasta||"");setFP({...ev.puntajes});setFObs(ev.observaciones||"");setFEvals(ev.evaluadores?.length?ev.evaluadores:[{nombre:"",rol:""}]);setEditEvalId(ev.id);irA("nueva_eval");}}>Editar</button>
+                        <button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("¿Eliminar esta evaluación?"))return;await delDoc("evaluaciones",ev.id);setEvaluaciones(p=>p.filter(e=>e.id!==ev.id));setOpenEvalId(null);}}>Eliminar</button>
+                      </>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"20px 0 14px"}}>
+            <div className="sec-title" style={{marginBottom:0}}>Autoevaluación</div>
+            {!esCliente&&<button className="btn btn-blue btn-sm" onClick={()=>{resetAuto();irA("nueva_auto");}}>+ Nueva autoevaluación</button>}
+          </div>
+          {!autoDeEmp.length&&<div className="card" style={{color:"#bbb",fontSize:13,textAlign:"center",padding:20}}>Sin autoevaluaciones.</div>}
+          {autoDeEmp.map(a=>{
+            const open=openAutoId===a.id;
+            return(
+              <div key={a.id} className="card">
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div><span style={{fontWeight:600,fontSize:13}}>Autoevaluación</span><span style={{fontSize:11,color:"#aaa",marginLeft:8}}>{a.fecha}</span></div>
+                  <button className="btn btn-outline btn-sm" onClick={()=>setOpenAutoId(open?null:a.id)}>{open?"Ocultar":"Ver respuestas"}</button>
+                </div>
+                {open&&(
+                  <div style={{marginTop:14,borderTop:"1px solid #f0f0f0",paddingTop:14}}>
+                    {AQ.map(q=>{const v=a.puntajes?.[q.id];const r=a.respuestas?.[q.id];const e=AE.find(x=>x.v===v);return(
+                      <div key={q.id} style={{marginBottom:12,paddingBottom:12,borderBottom:"1px solid #f5f5f5"}}>
+                        <div style={{fontSize:12,fontWeight:600,marginBottom:4}}>{q.t}</div>
+                        {v&&<span className="badge" style={{background:"#185FA522",color:"#185FA5",marginBottom:4}}>{v} — {e?.l}</span>}
+                        {r&&<p style={{fontSize:12,color:"#666",marginTop:4,fontStyle:"italic"}}>"{r}"</p>}
+                      </div>
+                    );})}
+                    {a.observaciones&&<div style={{background:"#eef6ff",border:"1px solid #185FA5",borderRadius:8,padding:"10px 14px",marginBottom:12}}><div style={{fontSize:10,color:"#185FA5",fontWeight:700,textTransform:"uppercase",marginBottom:4}}>Reflexión personal</div><p style={{fontSize:13,lineHeight:1.7,color:"#555"}}>{a.observaciones}</p></div>}
+                    {!esCliente&&<div style={{display:"flex",gap:8}}>
+                      <button className="btn btn-outline btn-sm" onClick={()=>{setAP({...a.puntajes});setAResp({...(a.respuestas||{})});setAObs(a.observaciones||"");setEditAutoId(a.id);irA("nueva_auto");}}>Editar</button>
+                      <button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("¿Eliminar?"))return;await delDoc("autoevals",a.id);setAutoevals(p=>p.filter(x=>x.id!==a.id));setOpenAutoId(null);}}>Eliminar</button>
+                    </div>}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {!esCliente&&<div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #eee",display:"flex",justifyContent:"flex-end"}}>
+            <button className="btn btn-danger btn-sm" onClick={async()=>{
+              if(!confirm(`¿Eliminar a "${empleado.nombre}"?`))return;
+              await delDoc("empleados",empActivo);
+              for(const ev of evalDeEmp) await delDoc("evaluaciones",ev.id);
+              for(const a of autoDeEmp) await delDoc("autoevals",a.id);
+              await loadAll();irA("empresa");
+            }}>Eliminar empleado</button>
+          </div>}
+        </div>
+      </div>
+    );
+  }
+
+  if(pagina==="nueva_eval"&&empleado){
+    const completo=Object.keys(fP).length===12&&fDesde&&fHasta;
+    const promLive=Object.keys(fP).length?avg(Object.values(fP)):null;
+    return(
+      <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+        <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
+          <TopBar titulo={editEvalId?"Editar evaluación":"Nueva evaluación 360°"} sub={empleado.nombre} back={()=>{resetEval();irA("empleado");}}/>
+          {fMsg&&<div style={{background:fMsg.startsWith("✓")?"#e1f5ee":"#fcebeb",color:fMsg.startsWith("✓")?"#0F6E56":"#E24B4A",borderRadius:8,padding:"10px 16px",marginBottom:14,fontWeight:500,fontSize:13}}>{fMsg}</div>}
+          <div className="card">
+            <div className="sec-title">Datos generales</div>
+            <div className="grid2" style={{marginBottom:14}}>
+              <div><span className="lbl">Tipo</span><select value={fTipo} onChange={e=>setFTipo(e.target.value)}><option value="jefe">Jefe inmediato</option><option value="par">Par</option><option value="subordinado">Subordinado</option><option value="cliente">Cliente interno</option></select></div>
+              <div/>
+              <div><span className="lbl">Período desde</span><input type="date" value={fDesde} onChange={e=>setFDesde(e.target.value)}/></div>
+              <div><span className="lbl">Período hasta</span><input type="date" value={fHasta} onChange={e=>setFHasta(e.target.value)}/></div>
+            </div>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <span className="lbl" style={{margin:0}}>Evaluadores que participaron</span>
+              <button className="btn btn-outline btn-sm" onClick={()=>setFEvals(p=>[...p,{nombre:"",rol:""}])}>+ Agregar</button>
+            </div>
+            {fEvals.map((ev,i)=>(
+              <div key={i} style={{display:"flex",gap:8,marginBottom:8,alignItems:"center"}}>
+                <input value={ev.nombre} onChange={e=>setFEvals(p=>p.map((x,j)=>j===i?{...x,nombre:e.target.value}:x))} placeholder={`Nombre evaluador ${i+1}`} style={{flex:2}}/>
+                <input value={ev.rol} onChange={e=>setFEvals(p=>p.map((x,j)=>j===i?{...x,rol:e.target.value}:x))} placeholder="Rol/Cargo" style={{flex:1}}/>
+                {fEvals.length>1&&<button className="btn btn-danger btn-sm" style={{padding:"6px 10px"}} onClick={()=>setFEvals(p=>p.filter((_,j)=>j!==i))}>✕</button>}
+              </div>
+            ))}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"10px 0 4px"}}>
+              <span style={{fontSize:12,color:"#888"}}>{Object.keys(fP).length}/12 calificadas</span>
+              {promLive!==null&&<span style={{fontSize:13,fontWeight:600,color:cp(promLive)}}>Promedio: {promLive.toFixed(2)} — {lp(promLive)}</span>}
+            </div>
+            <div className="prog"><div className="prog-fill" style={{width:`${Object.keys(fP).length/12*100}%`,background:GOLD}}/></div>
+          </div>
+          {COMP.map(c=>(
+            <div key={c.id} className="card" style={{padding:"14px 20px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:14}}>
+                <div style={{flex:1}}><div style={{fontWeight:600,fontSize:13,marginBottom:2}}>{c.id}. {c.n}</div><div style={{fontSize:11,color:"#999"}}>{c.d}</div></div>
+                <div style={{display:"flex",gap:5,flexShrink:0,alignItems:"center"}}>
+                  {ESCALA.map(e=>{const sel=fP[c.id]===e.v;return<button key={e.v} title={e.l} className="chip" onClick={()=>setFP(p=>({...p,[c.id]:e.v}))} style={{background:sel?e.c:"#f4f4f4",color:sel?"#fff":"#555",borderColor:sel?e.c:"transparent",transform:sel?"scale(1.1)":"scale(1)"}}>{e.v}</button>;})}
+                  {fP[c.id]!==undefined&&<span style={{fontSize:11,color:ESCALA.find(x=>x.v===fP[c.id])?.c,minWidth:60,fontWeight:600}}>{ESCALA.find(x=>x.v===fP[c.id])?.l}</span>}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="card"><span className="lbl">Observaciones (opcional)</span><textarea value={fObs} onChange={e=>setFObs(e.target.value)} placeholder="Notas adicionales..."/></div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginBottom:24}}>
+            <button className="btn btn-outline" onClick={()=>{resetEval();irA("empleado");}}>Cancelar</button>
+            <button className="btn btn-gold" style={{opacity:completo?1:.4}} onClick={async()=>{
+              if(!completo){setFMsg("Califica todas las competencias y completa el período.");return;}
+              const evF=fEvals.filter(e=>e.nombre.trim());
+              const data={empleado_id:empActivo,empleado_nombre:empleado.nombre,tipo:fTipo,periodo_desde:fDesde,periodo_hasta:fHasta,puntajes:{...fP},observaciones:fObs,evaluadores:evF,fecha:new Date().toLocaleDateString("es-CO")};
+              if(editEvalId){await setDoc("evaluaciones",editEvalId,{...data,id:editEvalId});setEvaluaciones(p=>p.map(e=>e.id===editEvalId?{id:editEvalId,...data}:e));}
+              else{const id=uid();await setDoc("evaluaciones",id,{...data,id});setEvaluaciones(p=>[...p,{id,...data}]);}
+              setFMsg("✓ Guardado.");
+              setTimeout(()=>{resetEval();irA("empleado");},1000);
+            }}>{editEvalId?"Guardar cambios":"Guardar evaluación"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if(pagina==="nueva_auto"&&empleado){
+    const nr=Object.values(aP).filter(v=>typeof v==="number").length;
+    return(
+      <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
+        <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
+          <TopBar titulo={editAutoId?"Editar autoevaluación":"Nueva autoevaluación"} sub={empleado.nombre} back={()=>{resetAuto();irA("empleado");}}/>
+          {aMsg&&<div style={{background:aMsg.startsWith("✓")?"#e1f5ee":"#fcebeb",color:aMsg.startsWith("✓")?"#0F6E56":"#E24B4A",borderRadius:8,padding:"10px 16px",marginBottom:14,fontWeight:500,fontSize:13}}>{aMsg}</div>}
+          <div className="card">
+            <div className="sec-title">Autoevaluación — {empleado.nombre}</div>
+            <div style={{fontSize:12,color:"#888",marginBottom:8}}>5=Muy alto · 4=Alto · 3=Medio · 2=Bajo · 1=Muy bajo</div>
+            <div className="prog"><div className="prog-fill" style={{width:`${nr/AQ.length*100}%`,background:"#185FA5"}}/></div>
+            <div style={{fontSize:11,color:"#aaa",marginTop:4}}>{nr}/{AQ.length} respondidas</div>
+          </div>
+          {AQ.map(q=>(
+            <div key={q.id} className="card" style={{padding:"14px 20px"}}>
+              <div style={{fontWeight:600,fontSize:13,marginBottom:10}}>{q.t}</div>
+              <div style={{display:"flex",gap:8,marginBottom:10,flexWrap:"wrap"}}>
+                {AE.map(e=>{const sel=aP[q.id]===e.v;return<button key={e.v} onClick={()=>setAP(p=>({...p,[q.id]:e.v}))} style={{padding:"6px 14px",borderRadius:8,fontSize:12,fontWeight:sel?700:400,cursor:"pointer",border:sel?"2px solid #185FA5":"1.5px solid #ddd",background:sel?"#185FA5":"#f4f4f4",color:sel?"#fff":"#555",transition:"all .15s",fontFamily:"inherit"}}>{e.v} — {e.l}</button>;})}
+              </div>
+              <input value={aResp[q.id]||""} onChange={e=>setAResp(p=>({...p,[q.id]:e.target.value}))} placeholder="Respuesta adicional (opcional)..." style={{fontSize:12}}/>
+            </div>
+          ))}
+          <div className="card"><span className="lbl">Reflexión personal (opcional)</span><textarea value={aObs} onChange={e=>setAObs(e.target.value)} placeholder="Comentarios generales..."/></div>
+          <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginBottom:24}}>
+            <button className="btn btn-outline" onClick={()=>{resetAuto();irA("empleado");}}>Cancelar</button>
+            <button className="btn btn-blue" onClick={async()=>{
+              const data={empleado_id:empActivo,puntajes:{...aP},respuestas:{...aResp},observaciones:aObs,fecha:new Date().toLocaleDateString("es-CO")};
+              if(editAutoId){await setDoc("autoevals",editAutoId,{...data,id:editAutoId});setAutoevals(p=>p.map(a=>a.id===editAutoId?{id:editAutoId,...data}:a));}
+              else{const id=uid();await setDoc("autoevals",id,{...data,id});setAutoevals(p=>[...p,{id,...data}]);}
+              setAMsg("✓ Guardado.");
+              setTimeout(()=>{resetAuto();irA("empleado");},1000);
+            }}>{editAutoId?"Guardar cambios":"Guardar autoevaluación"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return <div style={{padding:40,color:"#888"}}>Cargando...</div>;
+}
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>

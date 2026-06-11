@@ -1,13 +1,71 @@
-import { useState, useEffect, useRef } from "react";
-
-const GOLD="#e8a627", DARK="#1a1a2e";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>EV 360° — Mishell Fontalvo</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#1a1a2e}
+input,select{border:1px solid #d0d5dd;border-radius:8px;padding:9px 12px;font-size:13px;width:100%;outline:none;transition:border .2s;font-family:inherit}
+input:focus,select:focus{border-color:#e8a627;box-shadow:0 0 0 3px rgba(232,166,39,.13)}
+button{font-family:inherit;cursor:pointer}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;border:none;transition:all .18s}
+.btn-gold{background:#e8a627;color:#fff}.btn-gold:hover{background:#d4941f}
+.btn-outline{background:transparent;color:#1a1a2e;border:1.5px solid #d0d5dd}.btn-outline:hover{border-color:#e8a627;color:#e8a627}
+.btn-danger{background:#fff;color:#E24B4A;border:1.5px solid #E24B4A}.btn-danger:hover{background:#fcebeb}
+.btn-blue{background:#185FA5;color:#fff}.btn-blue:hover{background:#0c447c}
+.btn-sm{padding:5px 12px;font-size:12px}
+.card{background:#fff;border-radius:14px;border:1px solid #eee;padding:20px 22px;margin-bottom:14px}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.lbl{font-size:11px;color:#888;display:block;margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metric{background:#f8f9fa;border-radius:10px;padding:14px 16px}
+.sec-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8a627}
+.fb{border-left:3px solid #e8a627;padding:10px 14px;margin-bottom:12px;background:#fffbf0;border-radius:0 8px 8px 0}
+.fb h4{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#e8a627;margin-bottom:5px}
+.fb p{font-size:13px;line-height:1.7;color:#444}
+.chip{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;border:2px solid transparent}
+.prog{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:3px;transition:width .3s}
+.obs-display ul,.obs-display ol{padding-left:20px;margin:4px 0}
+.obs-display li{margin-bottom:2px;font-size:13px;line-height:1.7;color:#555}
+.obs-display b,.obs-display strong{font-weight:700}
+.obs-display i,.obs-display em{font-style:italic}
+[contenteditable][data-ph]:empty:before{content:attr(data-ph);color:#bbb;pointer-events:none}
+#root{min-height:100vh}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyALCwXNrwJuc-jY_1FPPvewtyY113jf4e8",
+  authDomain:"mishell360-dc7dd.firebaseapp.com",
+  projectId:"mishell360-dc7dd",
+  storageBucket:"mishell360-dc7dd.firebasestorage.app",
+  messagingSenderId:"867252715678",
+  appId:"1:867252715678:web:8cdcb10824ce942d673b8f"
+});
+const db=firebase.firestore();
+</script>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+const GOLD="#e8a627",DARK="#1a1a2e";
 const PIN_ADMIN="mishell2026";
-const COMPANY_COLORS=[
-  {bg:"#E8F4FD",accent:"#1E88E5"},{bg:"#FFF3E0",accent:"#FF9800"},
-  {bg:"#E8F5E9",accent:"#43A047"},{bg:"#FCE4EC",accent:"#E91E63"},
-  {bg:"#EDE7F6",accent:"#7E57C2"},{bg:"#E0F7FA",accent:"#00ACC1"},
-  {bg:"#FFF8E1",accent:"#FFB300"},{bg:"#F3E5F5",accent:"#AB47BC"},
-  {bg:"#E8EAF6",accent:"#3949AB"},{bg:"#E0F2F1",accent:"#00897B"},
+const COLORS=[
+  {bg:"#E8F4FD",ac:"#1E88E5"},{bg:"#FFF3E0",ac:"#FF9800"},
+  {bg:"#E8F5E9",ac:"#43A047"},{bg:"#FCE4EC",ac:"#E91E63"},
+  {bg:"#EDE7F6",ac:"#7E57C2"},{bg:"#E0F7FA",ac:"#00ACC1"},
+  {bg:"#FFF8E1",ac:"#FFB300"},{bg:"#F3E5F5",ac:"#AB47BC"},
+  {bg:"#E8EAF6",ac:"#3949AB"},{bg:"#E0F2F1",ac:"#00897B"},
 ];
 const COMP=[
   {id:1,n:"Planificación y organización",d:"Capacidad para determinar acciones y alcanzar metas fijadas."},
@@ -28,14 +86,14 @@ const AQ=[
   {id:"a2",t:"¿Con qué frecuencia propones ideas nuevas o mejoras en tus procesos?"},
   {id:"a3",t:"¿Cómo valoras tu disposición para aprender y actualizarte?"},
   {id:"a4",t:"¿Cómo contribuyes al trabajo en equipo y la colaboración?"},
-  {id:"a5",t:"¿Cómo describes tu actitud frente a las normas y políticas de la organización?"},
+  {id:"a5",t:"¿Cómo describes tu actitud frente a las normas y políticas?"},
   {id:"a6",t:"¿Cómo evalúas la calidad de tus relaciones con compañeros y clientes?"},
   {id:"a7",t:"¿Qué tan puntual y comprometido/a eres con tu asistencia?"},
   {id:"a8",t:"¿Cómo describes la calidad de los trabajos que entregas?"},
   {id:"a9",t:"¿Qué tan eficaz eres cumpliendo los objetivos y metas asignadas?"},
-  {id:"a10",t:"¿Qué tanto cuidado das a los equipos y materiales de la organización?"},
+  {id:"a10",t:"¿Qué tanto cuidado das a los equipos y materiales?"},
   {id:"a11",t:"¿Cómo aplicas los conocimientos técnicos requeridos por tu cargo?"},
-  {id:"a12",t:"¿Qué tan identificado/a te sientes con los valores y la misión institucional?"},
+  {id:"a12",t:"¿Qué tan identificado/a te sientes con los valores y misión institucional?"},
   {id:"a13",t:"¿Cuáles consideras que son tus principales fortalezas laborales?"},
   {id:"a14",t:"¿En qué áreas crees que puedes mejorar?"},
   {id:"a15",t:"¿Qué metas personales tienes para el próximo semestre?"},
@@ -47,120 +105,34 @@ const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 const uid=()=>Math.random().toString(36).slice(2,9);
 const cp=p=>p>=4.5?"#0F6E56":p>=3.5?"#185FA5":p>=2.5?"#BA7517":p>=1.5?"#D85A30":"#A32D2D";
 const lp=p=>p>=4.5?"Excelente":p>=3.5?"Bueno":p>=2.5?"Aceptable":p>=1.5?"Regular":"Malo";
-const gc=i=>COMPANY_COLORS[i%COMPANY_COLORS.length];
-const load=(k,d)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch{return d;}};
-const save=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch{}};
+const gc=i=>COLORS[i%COLORS.length];
 
-function addMonths(dateStr, n){
-  if(!dateStr) return null;
-  const d=new Date(dateStr);
-  d.setMonth(d.getMonth()+n);
-  return d.toLocaleDateString("es-CO");
-}
+function addMonths(ds,n){if(!ds)return null;const d=new Date(ds);d.setMonth(d.getMonth()+n);return d.toLocaleDateString("es-CO");}
 
-function stripHtml(html){
-  if(!html) return "";
-  return html.replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim();
-}
-
-function feedback(p,nombre){
+function fbk(p,nombre){
   if(p>=4.5)return{e:`${nombre} demuestra un desempeño sobresaliente en todas las competencias evaluadas.`,r:`Destacan su planificación, calidad en la ejecución y relaciones interpersonales.`,m:`Fortalecer liderazgo y mentoría. Continuar actualizando conocimientos especializados.`,rc:`Programas de liderazgo avanzado, mentoría de pares y proyectos de alto impacto.`,h:`John Maxwell, Simon Sinek, coaching ejecutivo.`,ex:`Se espera que mantenga este nivel y se consolide como agente de cambio positivo.`};
   if(p>=3.5)return{e:`${nombre} presenta un desempeño bueno y consistente. Cumple con las expectativas del cargo.`,r:`Se resaltan colaboración, actitud respecto al trabajo y puntualidad.`,m:`Fortalecer iniciativa, innovación y aplicación de conocimientos técnicos.`,rc:`Capacitaciones y metas de crecimiento profesional medibles.`,h:`GTD, OKRs, LinkedIn Learning, Coursera.`,ex:`Se espera que continúe creciendo y amplíe su zona de confort.`};
-  if(p>=2.5)return{e:`${nombre} muestra un desempeño aceptable con oportunidades claras de mejora.`,r:`Se valoran asistencia regular y disposición básica para cumplir tareas.`,m:`Trabajar en calidad, eficacia, planificación y relaciones interpersonales.`,rc:`Plan de mejora individual con metas bimestrales.`,h:`Técnica Pomodoro, matriz de Eisenhower, comunicación asertiva.`,ex:`Se espera compromiso activo con el plan de mejora.`};
-  if(p>=1.5)return{e:`${nombre} presenta un desempeño por debajo de lo esperado. Se requiere atención inmediata.`,r:`Se reconoce la permanencia en el cargo y la disposición de tiempo.`,m:`Trabajar urgentemente calidad del trabajo, compromiso institucional e iniciativa.`,rc:`Acompañamiento psicológico o coaching, reuniones semanales.`,h:`Apps de gestión de hábitos, libros de inteligencia emocional.`,ex:`Se espera una mejora significativa en el próximo período.`};
+  if(p>=2.5)return{e:`${nombre} muestra un desempeño aceptable con oportunidades claras de mejora.`,r:`Se valoran asistencia regular y disposición básica para cumplir tareas.`,m:`Trabajar en calidad, eficacia, planificación y relaciones interpersonales.`,rc:`Plan de mejora individual con metas bimestrales y talleres de habilidades blandas.`,h:`Técnica Pomodoro, matriz de Eisenhower, comunicación asertiva.`,ex:`Se espera compromiso activo con el plan de mejora.`};
+  if(p>=1.5)return{e:`${nombre} presenta un desempeño por debajo de lo esperado. Se requiere atención inmediata.`,r:`Se reconoce la permanencia en el cargo y la disposición de tiempo.`,m:`Trabajar urgentemente calidad del trabajo, compromiso institucional e iniciativa.`,rc:`Acompañamiento psicológico o coaching, reuniones semanales de seguimiento.`,h:`Apps de gestión de hábitos, libros de inteligencia emocional.`,ex:`Se espera una mejora significativa en el próximo período.`};
   return{e:`${nombre} presenta un desempeño crítico. Se requiere intervención inmediata.`,r:`El proceso de evaluación es un punto de partida para el cambio.`,m:`Todas las competencias requieren intervención urgente.`,rc:`Diagnóstico integral, intervención psicosocial, seguimiento semanal.`,h:`Orientación vocacional, apoyo psicológico profesional.`,ex:`Se aplican medidas de seguimiento semanal.`};
 }
 
-// ── RICH TEXT EDITOR ──────────────────────────────────────────────────────────
-function RichTextEditor({value, onChange, placeholder="Escribe tus observaciones..."}) {
-  const ref = useRef(null);
-  const initialized = useRef(false);
+const getAll=async col=>{const s=await db.collection(col).get();return s.docs.map(d=>({id:d.id,...d.data()}));};
+const setDoc=async(col,id,data)=>db.collection(col).doc(id).set(data);
+const delDoc=async(col,id)=>db.collection(col).doc(id).delete();
 
-  useEffect(()=>{
-    if(ref.current && !initialized.current){
-      ref.current.innerHTML = value || '';
-      initialized.current = true;
-    }
-  },[]);
-
-  const exec = cmd => {
-    document.execCommand(cmd, false, null);
-    ref.current.focus();
-    onChange(ref.current.innerHTML);
-  };
-
-  const Btn = ({label, cmd, extra={}}) => (
-    <button type="button" onClick={()=>exec(cmd)}
-      style={{padding:'4px 10px',borderRadius:6,border:'1px solid #d0d5dd',background:'#f0f0f0',
-        cursor:'pointer',fontSize:12,fontFamily:'inherit',transition:'all .15s',...extra}}
-      onMouseEnter={e=>e.currentTarget.style.background='#e8a62722'}
-      onMouseLeave={e=>e.currentTarget.style.background='#f0f0f0'}>
-      {label}
-    </button>
-  );
-
-  return (
-    <div>
-      <div style={{display:'flex',gap:4,padding:'6px 8px',background:'#f8f9fa',border:'1px solid #d0d5dd',
-        borderBottom:'none',borderRadius:'8px 8px 0 0',flexWrap:'wrap',alignItems:'center'}}>
-        <Btn label={<b>N</b>} cmd="bold"/>
-        <Btn label={<i>K</i>} cmd="italic"/>
-        <Btn label={<u>S</u>} cmd="underline"/>
-        <div style={{width:1,height:18,background:'#ddd',margin:'0 2px'}}/>
-        <Btn label="• Viñetas" cmd="insertUnorderedList"/>
-        <Btn label="1. Numerado" cmd="insertOrderedList"/>
-        <div style={{width:1,height:18,background:'#ddd',margin:'0 2px'}}/>
-        <Btn label="✕ Limpiar" cmd="removeFormat" extra={{color:'#888'}}/>
-      </div>
-      <div ref={ref} contentEditable suppressContentEditableWarning
-        onInput={e=>onChange(e.currentTarget.innerHTML)}
-        style={{minHeight:90,border:'1px solid #d0d5dd',borderRadius:'0 0 8px 8px',
-          padding:'10px 12px',fontSize:13,lineHeight:1.7,outline:'none',background:'#fff',
-          fontFamily:'inherit'}}
-        data-ph={placeholder}
-      />
-    </div>
-  );
-}
-
-// ── PDF ───────────────────────────────────────────────────────────────────────
 function pdfFormato(){
   const filas=COMP.map(c=>`<tr><td style="padding:8px;border:1px solid #ddd;font-size:11px;text-align:center;width:30px;font-weight:600">${c.id}</td><td style="padding:8px 10px;border:1px solid #ddd;font-size:11px"><b>${c.n}</b><br><span style="color:#888;font-size:10px">${c.d}</span></td>${[5,4,3,2,1,0].map(()=>`<td style="padding:7px 5px;border:1px solid #ddd;text-align:center;width:38px"><div style="width:20px;height:20px;border-radius:50%;border:2px solid #aaa;margin:0 auto"></div></td>`).join("")}<td style="padding:8px;border:1px solid #ddd;min-width:110px"></td></tr>`).join("");
   const w=window.open("","_blank");
-  if(!w){alert("Permite ventanas emergentes en tu navegador");return;}
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Formato EV360°</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#1a1a2e;padding:28px 36px}@media print{.np{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body>
-<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #e8a627;padding-bottom:14px;margin-bottom:18px">
-  <div><div style="font-size:22px;font-weight:700;color:#e8a627">Mishell Fontalvo</div><div style="font-size:10px;letter-spacing:3px;color:#888;margin-top:2px">PSICÓLOGA · EV 360°</div><div style="font-size:10px;color:#aaa;margin-top:3px">Evaluación de Competencias · GAD P04 F1 · V1</div></div>
-  <div style="text-align:right;font-size:11px;color:#555;line-height:2.2"><div>Fecha: ___________________________</div><div>Período: ______________ al ______________</div></div>
-</div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
-  ${["Nombre del trabajador evaluado","Cargo del trabajador","Nombre del evaluador","Cargo / Relación con el evaluado"].map(l=>`<div style="border:1px solid #ddd;border-radius:8px;padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">${l}</div><div style="border-bottom:1px solid #bbb;min-height:24px;padding-bottom:6px"></div></div>`).join("")}
-</div>
-<div style="background:#fffbf0;border:1.5px solid #e8a627;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:11px;color:#555;line-height:1.8"><strong style="color:#e8a627">Escala:</strong> 5=Excelente · 4=Bueno · 3=Aceptable · 2=Regular · 1=Malo · 0=Pésimo</div>
-<table style="width:100%;border-collapse:collapse;margin-bottom:18px">
-  <thead><tr style="background:#1a1a2e;color:#fff"><th style="padding:7px;border:1px solid #333;font-size:10px">#</th><th style="padding:7px 10px;border:1px solid #333;font-size:10px;text-align:left">Competencia</th>${[5,4,3,2,1,0].map(v=>`<th style="padding:7px 5px;border:1px solid #333;font-size:10px">${v}</th>`).join("")}<th style="padding:7px 10px;border:1px solid #333;font-size:10px">Observación</th></tr>
-  <tr style="background:#f5f0e0">${["","","Excelente","Bueno","Aceptable","Regular","Malo","Pésimo",""].map(l=>`<td style="padding:4px;border:1px solid #ddd;font-size:8px;color:#555;text-align:center">${l}</td>`).join("")}</tr></thead>
-  <tbody>${filas}</tbody>
-</table>
-<div style="margin-bottom:20px"><div style="font-size:11px;font-weight:700;border-bottom:1.5px solid #e8a627;padding-bottom:4px;margin-bottom:8px">Observaciones generales</div>${Array(4).fill('<div style="border-bottom:1px solid #eee;margin-bottom:10px;min-height:16px"></div>').join("")}</div>
-<div style="display:flex;gap:14px;margin-bottom:22px">
-  <div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Sumatoria total</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div>
-  <div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Promedio (÷12)</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div>
-  <div style="border:1.5px solid #1a1a2e;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Calificación</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:100px"></div></div>
-</div>
-<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;padding-top:18px;border-top:1px solid #ddd">
-  ${["Evaluador / Firma","Mishell Fontalvo — Psicóloga","Firma del Evaluado"].map(f=>`<div style="text-align:center"><div style="border-top:${f.includes("Mishell")?"1.5px solid #e8a627":"1px solid #333"};margin-top:50px;margin-bottom:5px"></div><div style="font-size:10px;font-weight:600;color:${f.includes("Mishell")?"#e8a627":"#333"}">${f}</div></div>`).join("")}
-</div>
-<div class="np" style="position:fixed;bottom:22px;right:22px"><button onclick="window.print()" style="background:#e8a627;color:#fff;border:none;padding:11px 22px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:700">🖨️ Imprimir / PDF</button></div>
-</body></html>`);
+  if(!w){alert("Permite ventanas emergentes");return;}
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"/><title>Formato EV360°</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Georgia,serif;color:#1a1a2e;padding:28px 36px}@media print{.np{display:none!important}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}</style></head><body><div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2.5px solid #e8a627;padding-bottom:14px;margin-bottom:18px"><div><div style="font-size:22px;font-weight:700;color:#e8a627">Mishell Fontalvo</div><div style="font-size:10px;letter-spacing:3px;color:#888;margin-top:2px">PSICÓLOGA · EV 360°</div><div style="font-size:10px;color:#aaa;margin-top:3px">GAD P04 F1 · V1</div></div><div style="text-align:right;font-size:11px;color:#555;line-height:2.2"><div>Fecha: ___________________________</div><div>Período: ______________ al ______________</div></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">${["Nombre del trabajador evaluado","Cargo del trabajador","Nombre del evaluador","Cargo / Relación"].map(l=>`<div style="border:1px solid #ddd;border-radius:8px;padding:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#888;margin-bottom:4px">${l}</div><div style="border-bottom:1px solid #bbb;min-height:24px;padding-bottom:6px"></div></div>`).join("")}</div><div style="background:#fffbf0;border:1.5px solid #e8a627;border-radius:8px;padding:10px 16px;margin-bottom:16px;font-size:11px;color:#555;line-height:1.8"><strong style="color:#e8a627">Escala:</strong> 5=Excelente · 4=Bueno · 3=Aceptable · 2=Regular · 1=Malo · 0=Pésimo</div><table style="width:100%;border-collapse:collapse;margin-bottom:18px"><thead><tr style="background:#1a1a2e;color:#fff"><th style="padding:7px;border:1px solid #333;font-size:10px">#</th><th style="padding:7px 10px;border:1px solid #333;font-size:10px;text-align:left">Competencia</th>${[5,4,3,2,1,0].map(v=>`<th style="padding:7px 5px;border:1px solid #333;font-size:10px">${v}</th>`).join("")}<th style="padding:7px 10px;border:1px solid #333;font-size:10px">Observación</th></tr><tr style="background:#f5f0e0">${["","","Excelente","Bueno","Aceptable","Regular","Malo","Pésimo",""].map(l=>`<td style="padding:4px;border:1px solid #ddd;font-size:8px;color:#555;text-align:center">${l}</td>`).join("")}</tr></thead><tbody>${filas}</tbody></table><div style="margin-bottom:20px"><div style="font-size:11px;font-weight:700;border-bottom:1.5px solid #e8a627;padding-bottom:4px;margin-bottom:8px">Observaciones generales</div>${Array(4).fill('<div style="border-bottom:1px solid #eee;margin-bottom:10px;min-height:16px"></div>').join("")}</div><div style="display:flex;gap:14px;margin-bottom:22px"><div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Sumatoria</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div><div style="border:1.5px solid #e8a627;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Promedio ÷12</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:80px"></div></div><div style="border:1.5px solid #1a1a2e;border-radius:8px;padding:12px 18px;text-align:center"><div style="font-size:9px;text-transform:uppercase;color:#888;margin-bottom:4px">Calificación</div><div style="border-bottom:1px solid #bbb;min-height:22px;min-width:100px"></div></div></div><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:28px;padding-top:18px;border-top:1px solid #ddd">${["Evaluador / Firma","Mishell Fontalvo — Psicóloga","Firma del Evaluado"].map(f=>`<div style="text-align:center"><div style="border-top:${f.includes("Mishell")?"1.5px solid #e8a627":"1px solid #333"};margin-top:50px;margin-bottom:5px"></div><div style="font-size:10px;font-weight:600;color:${f.includes("Mishell")?"#e8a627":"#333"}">${f}</div></div>`).join("")}</div><div class="np" style="position:fixed;bottom:22px;right:22px"><button onclick="window.print()" style="background:#e8a627;color:#fff;border:none;padding:11px 22px;border-radius:10px;font-size:14px;cursor:pointer;font-weight:700">🖨️ Imprimir / PDF</button></div></body></html>`);
   w.document.close();
 }
 
 function pdfInforme(emp,ev,auto,empNombre){
   const p360=avg(Object.values(ev.puntajes));
-  const f=feedback(p360,emp.nombre);
+  const f=fbk(p360,emp.nombre);
   const evs=ev.evaluadores||[];
-  const obsText = ev.observaciones||'';
   const filas=COMP.map(c=>{
     const p=ev.puntajes[c.id],pa=auto?.puntajes?.[c.id];
     const e1=ESCALA.find(x=>x.v===p),e2=ESCALA.find(x=>x.v===pa);
@@ -180,7 +152,7 @@ function pdfInforme(emp,ev,auto,empNombre){
 ${evs.length?`<div style="background:#f0f4ff;border:1px solid #c5d0e8;border-radius:7px;padding:9px 13px;margin-bottom:14px;font-size:10px"><b>Evaluadores:</b> ${evs.map(e=>`${e.nombre} (${e.rol||"Evaluador"})`).join(" · ")}</div>`:""}
 <div class="sec">Resultados por competencia</div><table><thead><tr><th>Competencia</th><th style="text-align:center;width:65px">360°</th>${auto?`<th style="text-align:center;width:85px">Autoevaluación</th><th style="text-align:center;width:75px">Diferencia</th>`:""}</tr></thead><tbody>${filas}</tbody></table>
 <div class="sec" style="margin-top:18px">Retroalimentación</div>${[["Estado actual",f.e],["Lo que se resalta",f.r],["Áreas de mejora",f.m],["Recomendaciones",f.rc],["Herramientas de autoayuda",f.h],["Expectativas del líder",f.ex]].map(([t,v])=>`<div class="fb"><h4>${t}</h4><p>${v}</p></div>`).join("")}
-${obsText?`<div style="background:#fffbf0;border:1px solid #e8a627;border-radius:7px;padding:10px 13px;margin-bottom:11px"><div style="font-size:8px;color:#e8a627;font-weight:700;text-transform:uppercase;margin-bottom:6px">Observaciones del evaluador</div><div class="obs-block" style="font-size:12px;line-height:1.8;color:#555">${obsText}</div></div>`:""}
+${ev.observaciones?`<div style="background:#fffbf0;border:1px solid #e8a627;border-radius:7px;padding:10px 13px;margin-bottom:11px"><div style="font-size:8px;color:#e8a627;font-weight:700;text-transform:uppercase;margin-bottom:6px">Observaciones</div><div class="obs-block" style="font-size:12px;line-height:1.8;color:#555">${ev.observaciones}</div></div>`:""}
 ${auto&&arows?`<div class="sec" style="margin-top:18px">Autoevaluación</div>${auto.observaciones?`<div style="background:#eef6ff;border:1px solid #185FA5;border-radius:7px;padding:10px 13px;margin-bottom:11px"><div style="font-size:8px;color:#185FA5;font-weight:700;text-transform:uppercase;margin-bottom:3px">Reflexión personal</div><div class="obs-block" style="font-size:12px;line-height:1.8;color:#555">${auto.observaciones}</div></div>`:""}<table><thead><tr><th>Pregunta</th><th style="text-align:center;width:95px">Puntuación</th><th style="width:150px">Respuesta</th></tr></thead><tbody>${arows}</tbody></table>`:""}
 <div style="display:grid;grid-template-columns:${cols};gap:16px;margin-top:28px;padding-top:14px;border-top:1px solid #eee">${firmas.join("")}</div>
 <div class="np" style="position:fixed;bottom:18px;right:18px"><button onclick="window.print()" style="background:#e8a627;color:#fff;border:none;padding:9px 18px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600">🖨️ PDF</button></div>
@@ -188,45 +160,45 @@ ${auto&&arows?`<div class="sec" style="margin-top:18px">Autoevaluación</div>${a
   w.document.close();
 }
 
-const CSS=`
-*{box-sizing:border-box;margin:0;padding:0}
-input,select{border:1px solid #d0d5dd;border-radius:8px;padding:9px 12px;font-size:13px;width:100%;outline:none;transition:border .2s;font-family:inherit}
-input:focus,select:focus{border-color:#e8a627;box-shadow:0 0 0 3px rgba(232,166,39,.13)}
-button{font-family:inherit;cursor:pointer}
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;border:none;transition:all .18s}
-.btn-gold{background:#e8a627;color:#fff}.btn-gold:hover{background:#d4941f}
-.btn-dark{background:#1a1a2e;color:#fff}
-.btn-outline{background:transparent;color:#1a1a2e;border:1.5px solid #d0d5dd}.btn-outline:hover{border-color:#e8a627;color:#e8a627}
-.btn-danger{background:#fff;color:#E24B4A;border:1.5px solid #E24B4A}.btn-danger:hover{background:#fcebeb}
-.btn-blue{background:#185FA5;color:#fff}
-.btn-sm{padding:5px 12px;font-size:12px}
-.card{background:#fff;border-radius:14px;border:1px solid #eee;padding:20px 22px;margin-bottom:14px}
-.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600}
-.lbl{font-size:11px;color:#888;display:block;margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.metric{background:#f8f9fa;border-radius:10px;padding:14px 16px}
-.sec-title{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #e8a627}
-.fb{border-left:3px solid #e8a627;padding:10px 14px;margin-bottom:12px;background:#fffbf0;border-radius:0 8px 8px 0}
-.fb h4{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:#e8a627;margin-bottom:5px}
-.fb p{font-size:13px;line-height:1.7;color:#444}
-.chip{width:34px;height:34px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;cursor:pointer;transition:all .15s;border:2px solid transparent}
-.prog{height:5px;background:#eee;border-radius:3px;overflow:hidden;margin-top:4px}
-.prog-fill{height:100%;border-radius:3px;transition:width .3s}
-.obs-display ul,.obs-display ol{padding-left:20px;margin:4px 0}
-.obs-display li{margin-bottom:2px;font-size:13px;line-height:1.7;color:#555}
-.obs-display b,.obs-display strong{font-weight:700}
-.obs-display i,.obs-display em{font-style:italic}
-.obs-display p{margin-bottom:4px}
-[contenteditable][data-ph]:empty:before{content:attr(data-ph);color:#bbb;pointer-events:none}
-`;
+// ── RICH TEXT EDITOR ──────────────────────────────────────────────────────────
+function RichTextEditor({value,onChange,placeholder="Escribe tus observaciones..."}){
+  const ref=useRef(null);
+  const init=useRef(false);
+  useEffect(()=>{if(ref.current&&!init.current){ref.current.innerHTML=value||'';init.current=true;}},[]);
+  const exec=cmd=>{document.execCommand(cmd,false,null);ref.current.focus();onChange(ref.current.innerHTML);};
+  const Btn=({label,cmd,extra={}})=>(
+    <button type="button" onClick={()=>exec(cmd)}
+      style={{padding:'4px 10px',borderRadius:6,border:'1px solid #d0d5dd',background:'#f0f0f0',cursor:'pointer',fontSize:12,fontFamily:'inherit',...extra}}>
+      {label}
+    </button>
+  );
+  return(
+    <div>
+      <div style={{display:'flex',gap:4,padding:'6px 8px',background:'#f8f9fa',border:'1px solid #d0d5dd',borderBottom:'none',borderRadius:'8px 8px 0 0',flexWrap:'wrap'}}>
+        <Btn label={<b>N</b>} cmd="bold"/>
+        <Btn label={<i>K</i>} cmd="italic"/>
+        <Btn label={<u>S</u>} cmd="underline"/>
+        <span style={{width:1,height:18,background:'#ddd',margin:'auto 2px',display:'inline-block'}}/>
+        <Btn label="• Viñetas" cmd="insertUnorderedList"/>
+        <Btn label="1. Numerado" cmd="insertOrderedList"/>
+        <span style={{width:1,height:18,background:'#ddd',margin:'auto 2px',display:'inline-block'}}/>
+        <Btn label="✕ Limpiar" cmd="removeFormat" extra={{color:'#888'}}/>
+      </div>
+      <div ref={ref} contentEditable suppressContentEditableWarning
+        onInput={e=>onChange(e.currentTarget.innerHTML)}
+        style={{minHeight:90,border:'1px solid #d0d5dd',borderRadius:'0 0 8px 8px',padding:'10px 12px',fontSize:13,lineHeight:1.7,outline:'none',background:'#fff',fontFamily:'inherit'}}
+        data-ph={placeholder}/>
+    </div>
+  );
+}
 
-export default function App(){
-  const [empresas,setEmpresas]=useState(()=>load("mf4_empresas",[]));
-  const [empleados,setEmpleados]=useState(()=>load("mf4_empleados",[]));
-  const [evaluaciones,setEvaluaciones]=useState(()=>load("mf4_evaluaciones",[]));
-  const [autoevals,setAutoevals]=useState(()=>load("mf4_autoevals",[]));
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [empresas,setEmpresas]=useState([]);
+  const [empleados,setEmpleados]=useState([]);
+  const [evaluaciones,setEvaluaciones]=useState([]);
+  const [autoevals,setAutoevals]=useState([]);
+  const [loading,setLoading]=useState(true);
   const [sesion,setSesion]=useState(null);
   const [loginPin,setLoginPin]=useState("");
   const [loginErr,setLoginErr]=useState("");
@@ -258,7 +230,9 @@ export default function App(){
   const [enCargo,setEnCargo]=useState("");
   const [enMsg,setEnMsg]=useState("");
 
-  const persist=(k,v,s)=>{s(v);save(k,v);};
+  const loadAll=async()=>{setLoading(true);const[e,em,ev,au]=await Promise.all([getAll("empresas"),getAll("empleados"),getAll("evaluaciones"),getAll("autoevals")]);setEmpresas(e);setEmpleados(em);setEvaluaciones(ev);setAutoevals(au);setLoading(false);};
+  useEffect(()=>{loadAll();},[]);
+
   const empresa=empresas.find(e=>e.id===empActiva);
   const empleado=empleados.find(e=>e.id===empActivo);
   const empsDeEmp=empleados.filter(e=>e.empresa_id===empActiva);
@@ -266,7 +240,8 @@ export default function App(){
   const autoDeEmp=autoevals.filter(a=>a.empleado_id===empActivo);
   const lastAuto=autoDeEmp[autoDeEmp.length-1];
   const esCliente=sesion?.rol==="cliente";
-  const gc2=()=>{const idx=empresas.findIndex(e=>e.id===empActiva);return gc(idx>=0?idx:0);};
+  const empIdx=empresas.findIndex(e=>e.id===empActiva);
+  const CC=gc(empIdx>=0?empIdx:0);
 
   const resetEval=()=>{setFTipo("jefe");setFDesde("");setFHasta("");setFP({});setFObs("");setFEvals([{nombre:"",rol:""}]);setFMsg("");setEditEvalId(null);};
   const resetAuto=()=>{setAP({});setAResp({});setAObs("");setAMsg("");setEditAutoId(null);};
@@ -280,23 +255,18 @@ export default function App(){
   };
   const doLogout=()=>{setSesion(null);setLoginPin("");setLoginErr("");setPagina("empresas");};
 
-  // ── LOGIN ──
-  if(!sesion) return(
+  if(loading)return<div style={{minHeight:"100vh",background:`linear-gradient(135deg,${DARK} 0%,#16213e 100%)`,display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontSize:16}}>Cargando datos...</div>;
+
+  if(!sesion)return(
     <div style={{minHeight:"100vh",background:`linear-gradient(135deg,${DARK} 0%,#16213e 100%)`,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
-      <style>{CSS}</style>
       <div style={{background:"#fff",borderRadius:20,padding:"40px 36px",width:"100%",maxWidth:380,boxShadow:"0 24px 60px rgba(0,0,0,.3)"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontFamily:"Georgia,serif",fontSize:26,fontWeight:700,color:GOLD}}>Mishell Fontalvo</div>
           <div style={{fontSize:11,color:"#888",letterSpacing:3,marginTop:2}}>PSICÓLOGA</div>
-          <div style={{display:"flex",justifyContent:"center",margin:"14px 0"}}>
-            <span style={{background:`${GOLD}22`,color:GOLD,fontWeight:700,fontSize:15,letterSpacing:2,padding:"6px 18px",borderRadius:10,border:`1.5px solid ${GOLD}55`}}>EV 360°</span>
-          </div>
+          <div style={{display:"flex",justifyContent:"center",margin:"14px 0"}}><span style={{background:`${GOLD}22`,color:GOLD,fontWeight:700,fontSize:15,letterSpacing:2,padding:"6px 18px",borderRadius:10,border:`1.5px solid ${GOLD}55`}}>EV 360°</span></div>
           <div style={{fontSize:12,color:"#999"}}>Sistema de Evaluación de Competencias</div>
         </div>
-        <div style={{marginBottom:16}}>
-          <span className="lbl">PIN de acceso</span>
-          <input type="password" value={loginPin} onChange={e=>setLoginPin(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} placeholder="Ingresa tu PIN"/>
-        </div>
+        <div style={{marginBottom:16}}><span className="lbl">PIN de acceso</span><input type="password" value={loginPin} onChange={e=>setLoginPin(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doLogin()} placeholder="Ingresa tu PIN"/></div>
         {loginErr&&<div style={{fontSize:12,color:"#E24B4A",marginBottom:10,textAlign:"center"}}>{loginErr}</div>}
         <button className="btn btn-gold" style={{width:"100%",justifyContent:"center",padding:11}} onClick={doLogin}>Ingresar</button>
         <div style={{marginTop:12,fontSize:11,color:"#ddd",textAlign:"center"}}>Administrador o acceso de empresa</div>
@@ -320,10 +290,8 @@ export default function App(){
     </div>
   );
 
-  // ── EMPRESAS ──
-  if(pagina==="empresas") return(
+  if(pagina==="empresas")return(
     <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-      <style>{CSS}</style>
       <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
         <TopBar titulo="Dashboard"/>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
@@ -340,19 +308,19 @@ export default function App(){
             const ec=empleados.filter(e=>e.empresa_id===emp.id).length;
             const ev=evaluaciones.filter(ev=>empleados.find(e=>e.empresa_id===emp.id&&e.id===ev.empleado_id)).length;
             return(
-              <div key={emp.id} style={{background:"#fff",borderRadius:14,border:`2px solid ${c.accent}33`,padding:"20px 22px",cursor:"pointer",transition:"all .2s"}}
+              <div key={emp.id} style={{background:"#fff",borderRadius:14,border:`2px solid ${c.ac}33`,padding:"20px 22px",cursor:"pointer",transition:"all .2s"}}
                 onClick={()=>{setEmpActiva(emp.id);setEmpActivo(null);irA("empresa");}}
-                onMouseEnter={e=>{e.currentTarget.style.boxShadow=`0 4px 20px ${c.accent}33`;e.currentTarget.style.borderColor=c.accent;}}
-                onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor=`${c.accent}33`;}}>
+                onMouseEnter={e=>{e.currentTarget.style.boxShadow=`0 4px 20px ${c.ac}33`;e.currentTarget.style.borderColor=c.ac;}}
+                onMouseLeave={e=>{e.currentTarget.style.boxShadow="none";e.currentTarget.style.borderColor=`${c.ac}33`;}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-                  <div style={{width:46,height:46,borderRadius:12,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16,color:c.accent}}>{emp.nombre.slice(0,2).toUpperCase()}</div>
+                  <div style={{width:46,height:46,borderRadius:12,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:16,color:c.ac}}>{emp.nombre.slice(0,2).toUpperCase()}</div>
                   <div style={{textAlign:"right"}}>
-                    {emp.sector&&<div style={{fontSize:10,background:c.bg,color:c.accent,borderRadius:20,padding:"2px 8px",fontWeight:600,marginBottom:4}}>{emp.sector}</div>}
+                    {emp.sector&&<div style={{fontSize:10,background:c.bg,color:c.ac,borderRadius:20,padding:"2px 8px",fontWeight:600,marginBottom:4}}>{emp.sector}</div>}
                     {emp.clave?<div style={{fontSize:10,color:"#0F6E56",background:"#e1f5ee",borderRadius:20,padding:"2px 8px",fontWeight:600}}>🔑 Clave activa</div>:<div style={{fontSize:10,color:"#aaa",background:"#f5f5f5",borderRadius:20,padding:"2px 8px"}}>Sin clave</div>}
                   </div>
                 </div>
                 <div style={{fontWeight:700,fontSize:14,marginBottom:10}}>{emp.nombre}</div>
-                <div style={{height:3,borderRadius:2,background:c.bg,marginBottom:10,overflow:"hidden"}}><div style={{width:`${Math.min(ec*10,100)}%`,height:"100%",background:c.accent}}/></div>
+                <div style={{height:3,borderRadius:2,background:c.bg,marginBottom:10,overflow:"hidden"}}><div style={{width:`${Math.min(ec*10,100)}%`,height:"100%",background:c.ac}}/></div>
                 <div style={{display:"flex",gap:14}}><span style={{fontSize:11,color:"#888"}}><b style={{color:"#1a1a2e",fontSize:14}}>{ec}</b> empleados</span><span style={{fontSize:11,color:"#888"}}><b style={{color:"#1a1a2e",fontSize:14}}>{ev}</b> evaluaciones</span></div>
               </div>
             );
@@ -362,30 +330,22 @@ export default function App(){
     </div>
   );
 
-  if(pagina==="nueva_empresa") return(
+  if(pagina==="nueva_empresa")return(
     <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-      <style>{CSS}</style>
       <div style={{maxWidth:500,margin:"0 auto",padding:"24px 20px"}}>
         <TopBar titulo="Nueva empresa" back={()=>irA("empresas")}/>
         <div className="card">
           <div className="sec-title">Datos de la empresa</div>
           <div style={{marginBottom:12}}><span className="lbl">Nombre</span><input value={eNombre} onChange={e=>setENombre(e.target.value)} placeholder="Nombre de la empresa"/></div>
           <div style={{marginBottom:12}}><span className="lbl">Sector (opcional)</span><input value={eSector} onChange={e=>setESector(e.target.value)} placeholder="Salud, Educación..."/></div>
-          <div style={{marginBottom:16}}>
-            <span className="lbl">Clave de acceso para el cliente (opcional)</span>
-            <input value={eClave} onChange={e=>setEClave(e.target.value)} placeholder="Clave para que el cliente vea sus resultados"/>
-            <div style={{fontSize:11,color:"#aaa",marginTop:4}}>Con esta clave el cliente entra y ve solo sus resultados en modo lectura.</div>
-          </div>
+          <div style={{marginBottom:16}}><span className="lbl">Clave de acceso para el cliente (opcional)</span><input value={eClave} onChange={e=>setEClave(e.target.value)} placeholder="Clave para que el cliente vea sus resultados"/><div style={{fontSize:11,color:"#aaa",marginTop:4}}>Con esta clave el cliente entra y ve solo sus resultados en modo lectura.</div></div>
           {eMsg2&&<div style={{fontSize:12,color:eMsg2.startsWith("✓")?"#0F6E56":"#E24B4A",marginBottom:10}}>{eMsg2}</div>}
           <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
             <button className="btn btn-outline" onClick={()=>irA("empresas")}>Cancelar</button>
-            <button className="btn btn-gold" onClick={()=>{
+            <button className="btn btn-gold" onClick={async()=>{
               if(!eNombre){setEMsg2("Ingresa el nombre");return;}
-              const id="emp_"+uid();
-              const data={nombre:eNombre,sector:eSector,clave:eClave.trim()||null};
-              persist("mf4_empresas",[...empresas,{id,...data}],setEmpresas);
-              setEmpActiva(id);setEMsg2("✓ Empresa creada");
-              setTimeout(()=>irA("empresa"),600);
+              const id="emp_"+uid();const data={nombre:eNombre,sector:eSector,clave:eClave.trim()||null};
+              await setDoc("empresas",id,data);setEmpresas(p=>[...p,{id,...data}]);setEmpActiva(id);setEMsg2("✓ Empresa creada");setTimeout(()=>irA("empresa"),600);
             }}>Crear empresa</button>
           </div>
         </div>
@@ -393,116 +353,74 @@ export default function App(){
     </div>
   );
 
-  // ── EMPRESA ──
   if(pagina==="empresa"&&empresa){
-    const idx=empresas.findIndex(e=>e.id===empActiva);
-    const c=gc(idx);
-    const evsCount=evaluaciones.filter(ev=>empsDeEmp.find(e=>e.id===ev.empleado_id)).length;
-    const autosCount=autoevals.filter(a=>empsDeEmp.find(e=>e.id===a.empleado_id)).length;
     const allEvs=evaluaciones.filter(ev=>empsDeEmp.find(e=>e.id===ev.empleado_id));
     const promGlobal=allEvs.length?avg(allEvs.map(ev=>avg(Object.values(ev.puntajes)))):null;
-
-    // Tabla de empleados con fechas
+    const evsCount=allEvs.length;
+    const autosCount=autoevals.filter(a=>empsDeEmp.find(e=>e.id===a.empleado_id)).length;
     const tablaEmps=empsDeEmp.map(e=>{
       const evs=evaluaciones.filter(ev=>ev.empleado_id===e.id).sort((a,b)=>new Date(b.periodo_hasta||0)-new Date(a.periodo_hasta||0));
-      const lastEv=evs[0]||null;
+      const last=evs[0]||null;
       const prom=evs.length?avg(evs.map(ev=>avg(Object.values(ev.puntajes)))):null;
-      const ultimaFecha=lastEv?.periodo_hasta?new Date(lastEv.periodo_hasta).toLocaleDateString("es-CO"):lastEv?.fecha||"—";
-      const proximaFecha=lastEv?.periodo_hasta?addMonths(lastEv.periodo_hasta,6):"—";
-      return {emp:e,prom,ultimaFecha,proximaFecha,cantEvals:evs.length};
+      const ultimaFecha=last?.periodo_hasta?new Date(last.periodo_hasta).toLocaleDateString("es-CO"):last?.fecha||"—";
+      const proximaFecha=last?.periodo_hasta?addMonths(last.periodo_hasta,6):"—";
+      return{emp:e,prom,ultimaFecha,proximaFecha,cantEvals:evs.length};
     });
-
     return(
       <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-        <style>{CSS}</style>
         <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
           <TopBar titulo={empresa.nombre} sub={empresa.sector||""} back={esCliente?undefined:()=>irA("empresas")}/>
-
-          {/* MÉTRICAS GLOBALES */}
           <div className="grid4" style={{marginBottom:18}}>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Empleados</div><div style={{fontSize:26,fontWeight:700,color:c.accent}}>{empsDeEmp.length}</div></div>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Evaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.accent}}>{evsCount}</div></div>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.accent}}>{autosCount}</div></div>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`,background:promGlobal?`${c.accent}11`:"#f8f9fa`"}}>
-              <div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Promedio global</div>
-              <div style={{fontSize:26,fontWeight:700,color:promGlobal?cp(promGlobal):"#ccc"}}>{promGlobal?promGlobal.toFixed(2):"—"}</div>
-              {promGlobal&&<div style={{fontSize:11,fontWeight:600,color:cp(promGlobal)}}>{lp(promGlobal)}</div>}
-            </div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Empleados</div><div style={{fontSize:26,fontWeight:700,color:CC.ac}}>{empsDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Evaluaciones</div><div style={{fontSize:26,fontWeight:700,color:CC.ac}}>{evsCount}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:CC.ac}}>{autosCount}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase",letterSpacing:.5}}>Promedio global</div><div style={{fontSize:26,fontWeight:700,color:promGlobal?cp(promGlobal):"#ccc"}}>{promGlobal?promGlobal.toFixed(2):"—"}</div>{promGlobal&&<div style={{fontSize:11,fontWeight:600,color:cp(promGlobal)}}>{lp(promGlobal)}</div>}</div>
           </div>
-
-          {/* CLAVE */}
           {!esCliente&&(
-            <div className="card" style={{padding:"14px 20px",marginBottom:14,borderLeft:`3px solid ${c.accent}`}}>
+            <div className="card" style={{padding:"14px 20px",marginBottom:14,borderLeft:`3px solid ${CC.ac}`}}>
               {editClaveId===empresa.id?(
-                <div>
-                  <div style={{fontWeight:600,fontSize:13,marginBottom:8}}>Clave de acceso</div>
+                <div><div style={{fontWeight:600,fontSize:13,marginBottom:8}}>Clave de acceso</div>
                   <div style={{display:"flex",gap:8,alignItems:"center"}}>
                     <input value={editClaveVal} onChange={e=>setEditClaveVal(e.target.value)} placeholder="Nueva clave" style={{width:200}}/>
-                    <button className="btn btn-gold btn-sm" onClick={()=>{
-                      const nc=editClaveVal.trim()||null;
-                      persist("mf4_empresas",empresas.map(e=>e.id===empresa.id?{...e,clave:nc}:e),setEmpresas);
-                      setEditClaveId(null);
-                    }}>Guardar</button>
+                    <button className="btn btn-gold btn-sm" onClick={async()=>{const nc=editClaveVal.trim()||null;await setDoc("empresas",empresa.id,{...empresa,clave:nc});setEmpresas(p=>p.map(e=>e.id===empresa.id?{...e,clave:nc}:e));setEditClaveId(null);}}>Guardar</button>
                     <button className="btn btn-outline btn-sm" onClick={()=>setEditClaveId(null)}>Cancelar</button>
                   </div>
                 </div>
               ):(
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:10}}>
-                  <div>
-                    <div style={{fontWeight:600,fontSize:13,marginBottom:2}}>Clave de acceso para el cliente</div>
-                    <div style={{fontSize:12,color:"#888"}}>{empresa.clave?<span>Clave activa: <b style={{color:c.accent}}>{empresa.clave}</b></span>:"Sin clave asignada."}</div>
-                  </div>
+                  <div><div style={{fontWeight:600,fontSize:13,marginBottom:2}}>Clave de acceso para el cliente</div><div style={{fontSize:12,color:"#888"}}>{empresa.clave?<span>Clave activa: <b style={{color:CC.ac}}>{empresa.clave}</b></span>:"Sin clave asignada."}</div></div>
                   <button className="btn btn-outline btn-sm" onClick={()=>{setEditClaveId(empresa.id);setEditClaveVal(empresa.clave||"");}}>{empresa.clave?"Cambiar clave":"Asignar clave"}</button>
                 </div>
               )}
             </div>
           )}
-
-          {/* TABLA GENERAL DE EMPLEADOS */}
           {tablaEmps.length>0&&(
             <div className="card" style={{marginBottom:18,padding:"14px 0"}}>
-              <div style={{padding:"0 20px",marginBottom:12}}>
-                <div className="sec-title" style={{marginBottom:0}}>Resumen general de empleados</div>
-              </div>
+              <div style={{padding:"0 20px",marginBottom:12}}><div className="sec-title" style={{marginBottom:0}}>Resumen general de empleados</div></div>
               <div style={{overflowX:"auto"}}>
                 <table style={{width:"100%",borderCollapse:"collapse"}}>
-                  <thead>
-                    <tr style={{background:"#f8f9fa"}}>
-                      <th style={{padding:"10px 16px",textAlign:"left",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Nombre</th>
-                      <th style={{padding:"10px 12px",textAlign:"left",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Cargo</th>
-                      <th style={{padding:"10px 12px",textAlign:"center",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Evals</th>
-                      <th style={{padding:"10px 12px",textAlign:"center",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Promedio</th>
-                      <th style={{padding:"10px 12px",textAlign:"center",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Última evaluación</th>
-                      <th style={{padding:"10px 12px",textAlign:"center",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>Próxima evaluación</th>
-                    </tr>
-                  </thead>
+                  <thead><tr style={{background:"#f8f9fa"}}>
+                    {["Nombre","Cargo","Evals","Promedio","Última evaluación","Próxima evaluación"].map(h=>(
+                      <th key={h} style={{padding:"10px 12px",textAlign:h==="Nombre"?"left":"center",fontSize:11,color:"#888",fontWeight:600,textTransform:"uppercase",letterSpacing:.5,borderBottom:"1px solid #eee"}}>{h}</th>
+                    ))}
+                  </tr></thead>
                   <tbody>
                     {tablaEmps.map(({emp,prom,ultimaFecha,proximaFecha,cantEvals},i)=>(
-                      <tr key={emp.id} style={{background:i%2===0?"#fff":"#fafafa",cursor:"pointer",transition:"background .15s"}}
+                      <tr key={emp.id} style={{background:i%2===0?"#fff":"#fafafa",cursor:"pointer"}}
                         onClick={()=>{setEmpActivo(emp.id);irA("empleado");}}
-                        onMouseEnter={e=>e.currentTarget.style.background=`${c.accent}11`}
+                        onMouseEnter={e=>e.currentTarget.style.background=`${CC.ac}11`}
                         onMouseLeave={e=>e.currentTarget.style.background=i%2===0?"#fff":"#fafafa"}>
                         <td style={{padding:"12px 16px",borderBottom:"1px solid #f0f0f0"}}>
                           <div style={{display:"flex",alignItems:"center",gap:10}}>
-                            <div style={{width:32,height:32,borderRadius:8,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,color:c.accent,flexShrink:0}}>
-                              {emp.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}
-                            </div>
+                            <div style={{width:32,height:32,borderRadius:8,background:CC.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:12,color:CC.ac,flexShrink:0}}>{emp.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}</div>
                             <span style={{fontWeight:600,fontSize:13}}>{emp.nombre}</span>
                           </div>
                         </td>
                         <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",fontSize:12,color:"#666"}}>{emp.cargo}</td>
-                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}>
-                          <span style={{fontSize:12,fontWeight:600,color:c.accent}}>{cantEvals}</span>
-                        </td>
-                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}>
-                          {prom!==null?<span className="badge" style={{background:cp(prom)+"22",color:cp(prom)}}>{prom.toFixed(1)}</span>:<span style={{fontSize:11,color:"#ccc"}}>—</span>}
-                        </td>
+                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}><span style={{fontSize:12,fontWeight:600,color:CC.ac}}>{cantEvals}</span></td>
+                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}>{prom!==null?<span className="badge" style={{background:cp(prom)+"22",color:cp(prom)}}>{prom.toFixed(1)}</span>:<span style={{fontSize:11,color:"#ccc"}}>—</span>}</td>
                         <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center",fontSize:12,color:"#555"}}>{ultimaFecha}</td>
-                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}>
-                          {proximaFecha!=="—"
-                            ?<span style={{fontSize:12,fontWeight:600,color:"#185FA5",background:"#185FA511",padding:"3px 8px",borderRadius:20}}>{proximaFecha}</span>
-                            :<span style={{fontSize:11,color:"#ccc"}}>—</span>}
-                        </td>
+                        <td style={{padding:"12px",borderBottom:"1px solid #f0f0f0",textAlign:"center"}}>{proximaFecha!=="—"?<span style={{fontSize:12,fontWeight:600,color:"#185FA5",background:"#185FA511",padding:"3px 8px",borderRadius:20}}>{proximaFecha}</span>:<span style={{fontSize:11,color:"#ccc"}}>—</span>}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -510,55 +428,47 @@ export default function App(){
               </div>
             </div>
           )}
-
-          {/* EMPLEADOS */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div className="sec-title" style={{marginBottom:0}}>Empleados</div>
-            {!esCliente&&<button className="btn btn-sm" style={{background:c.accent,color:"#fff",border:"none"}} onClick={()=>{setEnNombre("");setEnCargo("");setEnMsg("");irA("nueva_emp");}}>+ Agregar empleado</button>}
+            {!esCliente&&<button className="btn btn-sm" style={{background:CC.ac,color:"#fff",border:"none"}} onClick={()=>{setEnNombre("");setEnCargo("");setEnMsg("");irA("nueva_emp");}}>+ Agregar empleado</button>}
           </div>
           {!empsDeEmp.length&&<div className="card" style={{textAlign:"center",color:"#bbb",padding:30,fontSize:12}}>No hay empleados.</div>}
           {empsDeEmp.map(e=>{
             const evs=evaluaciones.filter(ev=>ev.empleado_id===e.id);
             const pr=evs.length?avg(evs.map(ev=>avg(Object.values(ev.puntajes)))):null;
             return(
-              <div key={e.id} className="card" style={{cursor:"pointer",borderLeft:`3px solid ${c.accent}`}}
+              <div key={e.id} className="card" style={{cursor:"pointer",borderLeft:`3px solid ${CC.ac}`}}
                 onClick={()=>{setEmpActivo(e.id);irA("empleado");}}
-                onMouseEnter={ev=>ev.currentTarget.style.boxShadow=`0 2px 12px ${c.accent}33`}
+                onMouseEnter={ev=>ev.currentTarget.style.boxShadow=`0 2px 12px ${CC.ac}33`}
                 onMouseLeave={ev=>ev.currentTarget.style.boxShadow="none"}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
                   <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                    <div style={{width:42,height:42,borderRadius:12,background:c.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:c.accent}}>{e.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}</div>
+                    <div style={{width:42,height:42,borderRadius:12,background:CC.bg,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:700,fontSize:14,color:CC.ac}}>{e.nombre.split(" ").map(w=>w[0]).slice(0,2).join("")}</div>
                     <div><div style={{fontWeight:600,fontSize:14}}>{e.nombre}</div><div style={{fontSize:12,color:"#888"}}>{e.cargo}</div></div>
                   </div>
                   <div style={{display:"flex",gap:10,alignItems:"center"}}>
                     {pr!==null&&<span className="badge" style={{background:cp(pr)+"22",color:cp(pr)}}>{pr.toFixed(1)} — {lp(pr)}</span>}
-                    <span style={{fontSize:12,color:c.accent,fontWeight:500}}>Ver →</span>
+                    <span style={{fontSize:12,color:CC.ac,fontWeight:500}}>Ver →</span>
                   </div>
                 </div>
               </div>
             );
           })}
-          {!esCliente&&(
-            <div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #eee",display:"flex",justifyContent:"flex-end"}}>
-              <button className="btn btn-danger btn-sm" onClick={()=>{
-                if(!confirm(`¿Eliminar "${empresa.nombre}" y todos sus datos?`))return;
-                const ids=empsDeEmp.map(e=>e.id);
-                persist("mf4_empresas",empresas.filter(e=>e.id!==empActiva),setEmpresas);
-                persist("mf4_empleados",empleados.filter(e=>e.empresa_id!==empActiva),setEmpleados);
-                persist("mf4_evaluaciones",evaluaciones.filter(ev=>!ids.includes(ev.empleado_id)),setEvaluaciones);
-                persist("mf4_autoevals",autoevals.filter(a=>!ids.includes(a.empleado_id)),setAutoevals);
-                irA("empresas");
-              }}>Eliminar empresa</button>
-            </div>
-          )}
+          {!esCliente&&<div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #eee",display:"flex",justifyContent:"flex-end"}}>
+            <button className="btn btn-danger btn-sm" onClick={async()=>{
+              if(!confirm(`¿Eliminar "${empresa.nombre}" y todos sus datos?`))return;
+              await delDoc("empresas",empActiva);
+              for(const e of empsDeEmp){await delDoc("empleados",e.id);for(const ev of evaluaciones.filter(x=>x.empleado_id===e.id))await delDoc("evaluaciones",ev.id);for(const a of autoevals.filter(x=>x.empleado_id===e.id))await delDoc("autoevals",a.id);}
+              await loadAll();irA("empresas");
+            }}>Eliminar empresa</button>
+          </div>}
         </div>
       </div>
     );
   }
 
-  if(pagina==="nueva_emp") return(
+  if(pagina==="nueva_emp")return(
     <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-      <style>{CSS}</style>
       <div style={{maxWidth:500,margin:"0 auto",padding:"24px 20px"}}>
         <TopBar titulo="Nuevo empleado" back={()=>irA("empresa")}/>
         <div className="card">
@@ -568,12 +478,10 @@ export default function App(){
           {enMsg&&<div style={{fontSize:12,color:enMsg.startsWith("✓")?"#0F6E56":"#E24B4A",marginBottom:10}}>{enMsg}</div>}
           <div style={{display:"flex",gap:8,justifyContent:"flex-end"}}>
             <button className="btn btn-outline" onClick={()=>irA("empresa")}>Cancelar</button>
-            <button className="btn btn-gold" onClick={()=>{
+            <button className="btn btn-gold" onClick={async()=>{
               if(!enNombre||!enCargo){setEnMsg("Completa todos los campos");return;}
-              const id="per_"+uid();
-              persist("mf4_empleados",[...empleados,{id,nombre:enNombre,cargo:enCargo,empresa_id:empActiva}],setEmpleados);
-              setEnMsg("✓ Empleado agregado");
-              setTimeout(()=>{setEmpActivo(id);irA("empleado");},600);
+              const id="per_"+uid();const data={nombre:enNombre,cargo:enCargo,empresa_id:empActiva};
+              await setDoc("empleados",id,data);setEmpleados(p=>[...p,{id,...data}]);setEnMsg("✓ Empleado agregado");setTimeout(()=>{setEmpActivo(id);irA("empleado");},600);
             }}>Agregar empleado</button>
           </div>
         </div>
@@ -581,30 +489,24 @@ export default function App(){
     </div>
   );
 
-  // ── EMPLEADO ──
   if(pagina==="empleado"&&empleado){
-    const c=gc2();
     const pr=evalDeEmp.length?avg(evalDeEmp.map(ev=>avg(Object.values(ev.puntajes)))):null;
     return(
       <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-        <style>{CSS}</style>
         <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
           <TopBar titulo={empleado.nombre} sub={empleado.cargo} back={()=>irA("empresa")}/>
           <div className="grid3" style={{marginBottom:20}}>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Evaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.accent}}>{evalDeEmp.length}</div></div>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:c.accent}}>{autoDeEmp.length}</div></div>
-            <div className="metric" style={{borderLeft:`3px solid ${c.accent}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Promedio general</div><div style={{fontSize:26,fontWeight:700,color:pr?cp(pr):"#ccc"}}>{pr?pr.toFixed(2):"—"}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Evaluaciones</div><div style={{fontSize:26,fontWeight:700,color:CC.ac}}>{evalDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Autoevaluaciones</div><div style={{fontSize:26,fontWeight:700,color:CC.ac}}>{autoDeEmp.length}</div></div>
+            <div className="metric" style={{borderLeft:`3px solid ${CC.ac}`}}><div style={{fontSize:11,color:"#888",textTransform:"uppercase"}}>Promedio general</div><div style={{fontSize:26,fontWeight:700,color:pr?cp(pr):"#ccc"}}>{pr?pr.toFixed(2):"—"}</div></div>
           </div>
-
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
             <div className="sec-title" style={{marginBottom:0}}>Evaluaciones 360°</div>
-            {!esCliente&&<button className="btn btn-sm" style={{background:c.accent,color:"#fff",border:"none"}} onClick={()=>{resetEval();irA("nueva_eval");}}>+ Nueva evaluación</button>}
+            {!esCliente&&<button className="btn btn-sm" style={{background:CC.ac,color:"#fff",border:"none"}} onClick={()=>{resetEval();irA("nueva_eval");}}>+ Nueva evaluación</button>}
           </div>
           {!evalDeEmp.length&&<div className="card" style={{color:"#bbb",fontSize:13,textAlign:"center",padding:20}}>Sin evaluaciones registradas.</div>}
           {evalDeEmp.map(ev=>{
-            const p=avg(Object.values(ev.puntajes));
-            const f=feedback(p,empleado.nombre);
-            const open=openEvalId===ev.id;
+            const p=avg(Object.values(ev.puntajes));const f=fbk(p,empleado.nombre);const open=openEvalId===ev.id;
             return(
               <div key={ev.id} className="card">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:8}}>
@@ -621,41 +523,28 @@ export default function App(){
                 </div>
                 {open&&(
                   <div style={{marginTop:16,borderTop:"1px solid #f0f0f0",paddingTop:14}}>
-                    {COMP.map(c2=>{
-                      const cp2=ev.puntajes[c2.id];const ce=ESCALA.find(x=>x.v===cp2);const ap=lastAuto?.puntajes?.[c2.id];
-                      return(<div key={c2.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:7}}>
+                    {COMP.map(c2=>{const cp2=ev.puntajes[c2.id];const ce=ESCALA.find(x=>x.v===cp2);const ap=lastAuto?.puntajes?.[c2.id];return(
+                      <div key={c2.id} style={{display:"flex",alignItems:"center",gap:10,marginBottom:7}}>
                         <div style={{fontSize:12,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{c2.id}. {c2.n}</div>
                         <div style={{width:90,flexShrink:0}}><div className="prog"><div className="prog-fill" style={{width:`${((cp2||0)/5)*100}%`,background:ce?.c||"#eee"}}/></div></div>
                         <span style={{fontSize:12,fontWeight:600,color:ce?.c||"#999",minWidth:28}}>{cp2??"-"}</span>
                         {ap!==undefined&&<span style={{fontSize:11,color:"#aaa",minWidth:44}}>auto:{ap}</span>}
-                      </div>);
-                    })}
-                    <div style={{marginTop:14}}>
-                      <div className="sec-title" style={{fontSize:13}}>Retroalimentación</div>
+                      </div>
+                    );})}
+                    <div style={{marginTop:14}}><div className="sec-title" style={{fontSize:13}}>Retroalimentación</div>
                       {[["Estado actual",f.e],["Lo que se resalta",f.r],["Áreas de mejora",f.m],["Recomendaciones",f.rc],["Herramientas de autoayuda",f.h],["Expectativas del líder",f.ex]].map(([t,v])=>(
                         <div key={t} className="fb"><h4>{t}</h4><p>{v}</p></div>
                       ))}
-                      {ev.observaciones&&(
-                        <div style={{background:"#fffbf0",border:"1px solid #e8a627",borderRadius:8,padding:"12px 16px",marginBottom:12}}>
-                          <div style={{fontSize:10,color:GOLD,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Observaciones del evaluador</div>
-                          <div className="obs-display" dangerouslySetInnerHTML={{__html:ev.observaciones}}/>
-                        </div>
-                      )}
+                      {ev.observaciones&&<div style={{background:"#fffbf0",border:"1px solid #e8a627",borderRadius:8,padding:"12px 16px",marginBottom:12}}>
+                        <div style={{fontSize:10,color:GOLD,fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Observaciones</div>
+                        <div className="obs-display" dangerouslySetInnerHTML={{__html:ev.observaciones}}/>
+                      </div>}
                     </div>
                     <div style={{display:"flex",gap:8,marginTop:8,flexWrap:"wrap"}}>
                       <button className="btn btn-gold btn-sm" onClick={()=>pdfInforme(empleado,ev,lastAuto,empresa?.nombre||"")}>Descargar PDF</button>
                       {!esCliente&&<>
-                        <button className="btn btn-outline btn-sm" onClick={()=>{
-                          setFTipo(ev.tipo||"jefe");setFDesde(ev.periodo_desde||"");setFHasta(ev.periodo_hasta||"");
-                          setFP({...ev.puntajes});setFObs(ev.observaciones||"");
-                          setFEvals(ev.evaluadores?.length?ev.evaluadores:[{nombre:"",rol:""}]);
-                          setEditEvalId(ev.id);irA("nueva_eval");
-                        }}>Editar</button>
-                        <button className="btn btn-danger btn-sm" onClick={()=>{
-                          if(!confirm("¿Eliminar esta evaluación?"))return;
-                          persist("mf4_evaluaciones",evaluaciones.filter(e=>e.id!==ev.id),setEvaluaciones);
-                          setOpenEvalId(null);
-                        }}>Eliminar</button>
+                        <button className="btn btn-outline btn-sm" onClick={()=>{setFTipo(ev.tipo||"jefe");setFDesde(ev.periodo_desde||"");setFHasta(ev.periodo_hasta||"");setFP({...ev.puntajes});setFObs(ev.observaciones||"");setFEvals(ev.evaluadores?.length?ev.evaluadores:[{nombre:"",rol:""}]);setEditEvalId(ev.id);irA("nueva_eval");}}>Editar</button>
+                        <button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("¿Eliminar?"))return;await delDoc("evaluaciones",ev.id);setEvaluaciones(p=>p.filter(e=>e.id!==ev.id));setOpenEvalId(null);}}>Eliminar</button>
                       </>}
                     </div>
                   </div>
@@ -663,51 +552,42 @@ export default function App(){
               </div>
             );
           })}
-
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",margin:"20px 0 14px"}}>
             <div className="sec-title" style={{marginBottom:0}}>Autoevaluación</div>
             {!esCliente&&<button className="btn btn-blue btn-sm" onClick={()=>{resetAuto();irA("nueva_auto");}}>+ Nueva autoevaluación</button>}
           </div>
           {!autoDeEmp.length&&<div className="card" style={{color:"#bbb",fontSize:13,textAlign:"center",padding:20}}>Sin autoevaluaciones.</div>}
-          {autoDeEmp.map(a=>{
-            const open=openAutoId===a.id;
-            return(
-              <div key={a.id} className="card">
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div><span style={{fontWeight:600,fontSize:13}}>Autoevaluación</span><span style={{fontSize:11,color:"#aaa",marginLeft:8}}>{a.fecha}</span></div>
-                  <button className="btn btn-outline btn-sm" onClick={()=>setOpenAutoId(open?null:a.id)}>{open?"Ocultar":"Ver respuestas"}</button>
-                </div>
-                {open&&(
-                  <div style={{marginTop:14,borderTop:"1px solid #f0f0f0",paddingTop:14}}>
-                    {AQ.map(q=>{const v=a.puntajes?.[q.id];const r=a.respuestas?.[q.id];const e=AE.find(x=>x.v===v);return(
-                      <div key={q.id} style={{marginBottom:12,paddingBottom:12,borderBottom:"1px solid #f5f5f5"}}>
-                        <div style={{fontSize:12,fontWeight:600,marginBottom:4}}>{q.t}</div>
-                        {v&&<span className="badge" style={{background:"#185FA522",color:"#185FA5",marginBottom:4}}>{v} — {e?.l}</span>}
-                        {r&&<p style={{fontSize:12,color:"#666",marginTop:4,fontStyle:"italic"}}>"{r}"</p>}
-                      </div>
-                    );})}
-                    {a.observaciones&&(
-                      <div style={{background:"#eef6ff",border:"1px solid #185FA5",borderRadius:8,padding:"12px 16px",marginBottom:12}}>
-                        <div style={{fontSize:10,color:"#185FA5",fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Reflexión personal</div>
-                        <div className="obs-display" dangerouslySetInnerHTML={{__html:a.observaciones}}/>
-                      </div>
-                    )}
-                    {!esCliente&&<div style={{display:"flex",gap:8}}>
-                      <button className="btn btn-outline btn-sm" onClick={()=>{setAP({...a.puntajes});setAResp({...(a.respuestas||{})});setAObs(a.observaciones||"");setEditAutoId(a.id);irA("nueva_auto");}}>Editar</button>
-                      <button className="btn btn-danger btn-sm" onClick={()=>{if(!confirm("¿Eliminar?"))return;persist("mf4_autoevals",autoevals.filter(x=>x.id!==a.id),setAutoevals);setOpenAutoId(null);}}>Eliminar</button>
-                    </div>}
-                  </div>
-                )}
+          {autoDeEmp.map(a=>{const open=openAutoId===a.id;return(
+            <div key={a.id} className="card">
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <div><span style={{fontWeight:600,fontSize:13}}>Autoevaluación</span><span style={{fontSize:11,color:"#aaa",marginLeft:8}}>{a.fecha}</span></div>
+                <button className="btn btn-outline btn-sm" onClick={()=>setOpenAutoId(open?null:a.id)}>{open?"Ocultar":"Ver respuestas"}</button>
               </div>
-            );
-          })}
+              {open&&(
+                <div style={{marginTop:14,borderTop:"1px solid #f0f0f0",paddingTop:14}}>
+                  {AQ.map(q=>{const v=a.puntajes?.[q.id];const r=a.respuestas?.[q.id];const e=AE.find(x=>x.v===v);return(
+                    <div key={q.id} style={{marginBottom:12,paddingBottom:12,borderBottom:"1px solid #f5f5f5"}}>
+                      <div style={{fontSize:12,fontWeight:600,marginBottom:4}}>{q.t}</div>
+                      {v&&<span className="badge" style={{background:"#185FA522",color:"#185FA5",marginBottom:4}}>{v} — {e?.l}</span>}
+                      {r&&<p style={{fontSize:12,color:"#666",marginTop:4,fontStyle:"italic"}}>"{r}"</p>}
+                    </div>
+                  );})}
+                  {a.observaciones&&<div style={{background:"#eef6ff",border:"1px solid #185FA5",borderRadius:8,padding:"12px 16px",marginBottom:12}}>
+                    <div style={{fontSize:10,color:"#185FA5",fontWeight:700,textTransform:"uppercase",marginBottom:6}}>Reflexión personal</div>
+                    <div className="obs-display" dangerouslySetInnerHTML={{__html:a.observaciones}}/>
+                  </div>}
+                  {!esCliente&&<div style={{display:"flex",gap:8}}>
+                    <button className="btn btn-outline btn-sm" onClick={()=>{setAP({...a.puntajes});setAResp({...(a.respuestas||{})});setAObs(a.observaciones||"");setEditAutoId(a.id);irA("nueva_auto");}}>Editar</button>
+                    <button className="btn btn-danger btn-sm" onClick={async()=>{if(!confirm("¿Eliminar?"))return;await delDoc("autoevals",a.id);setAutoevals(p=>p.filter(x=>x.id!==a.id));setOpenAutoId(null);}}>Eliminar</button>
+                  </div>}
+                </div>
+              )}
+            </div>
+          );})}
           {!esCliente&&<div style={{marginTop:20,paddingTop:16,borderTop:"1px solid #eee",display:"flex",justifyContent:"flex-end"}}>
-            <button className="btn btn-danger btn-sm" onClick={()=>{
+            <button className="btn btn-danger btn-sm" onClick={async()=>{
               if(!confirm(`¿Eliminar a "${empleado.nombre}"?`))return;
-              persist("mf4_empleados",empleados.filter(e=>e.id!==empActivo),setEmpleados);
-              persist("mf4_evaluaciones",evaluaciones.filter(e=>e.empleado_id!==empActivo),setEvaluaciones);
-              persist("mf4_autoevals",autoevals.filter(a=>a.empleado_id!==empActivo),setAutoevals);
-              irA("empresa");
+              await delDoc("empleados",empActivo);for(const ev of evalDeEmp)await delDoc("evaluaciones",ev.id);for(const a of autoDeEmp)await delDoc("autoevals",a.id);await loadAll();irA("empresa");
             }}>Eliminar empleado</button>
           </div>}
         </div>
@@ -715,13 +595,11 @@ export default function App(){
     );
   }
 
-  // ── NUEVA EVALUACIÓN ──
   if(pagina==="nueva_eval"&&empleado){
     const completo=Object.keys(fP).length===12&&fDesde&&fHasta;
     const promLive=Object.keys(fP).length?avg(Object.values(fP)):null;
     return(
       <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-        <style>{CSS}</style>
         <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
           <TopBar titulo={editEvalId?"Editar evaluación":"Nueva evaluación 360°"} sub={empleado.nombre} back={()=>{resetEval();irA("empleado");}}/>
           {fMsg&&<div style={{background:fMsg.startsWith("✓")?"#e1f5ee":"#fcebeb",color:fMsg.startsWith("✓")?"#0F6E56":"#E24B4A",borderRadius:8,padding:"10px 16px",marginBottom:14,fontWeight:500,fontSize:13}}>{fMsg}</div>}
@@ -750,7 +628,6 @@ export default function App(){
             </div>
             <div className="prog"><div className="prog-fill" style={{width:`${Object.keys(fP).length/12*100}%`,background:GOLD}}/></div>
           </div>
-
           {COMP.map(c=>(
             <div key={c.id} className="card" style={{padding:"14px 20px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:14}}>
@@ -762,23 +639,16 @@ export default function App(){
               </div>
             </div>
           ))}
-
-          <div className="card">
-            <span className="lbl">Observaciones generales (opcional)</span>
-            <div style={{marginTop:2}}>
-              <RichTextEditor value={fObs} onChange={setFObs} placeholder="Escribe observaciones con formato: negrilla, viñetas, numerado..."/>
-            </div>
-          </div>
+          <div className="card"><span className="lbl">Observaciones generales (opcional)</span><div style={{marginTop:4}}><RichTextEditor value={fObs} onChange={setFObs} placeholder="Escribe observaciones con formato: negrilla, viñetas, numerado..."/></div></div>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginBottom:24}}>
             <button className="btn btn-outline" onClick={()=>{resetEval();irA("empleado");}}>Cancelar</button>
-            <button className="btn btn-gold" style={{opacity:completo?1:.4}} onClick={()=>{
+            <button className="btn btn-gold" style={{opacity:completo?1:.4}} onClick={async()=>{
               if(!completo){setFMsg("Califica todas las competencias y completa el período.");return;}
               const evF=fEvals.filter(e=>e.nombre.trim());
               const data={empleado_id:empActivo,empleado_nombre:empleado.nombre,tipo:fTipo,periodo_desde:fDesde,periodo_hasta:fHasta,puntajes:{...fP},observaciones:fObs,evaluadores:evF,fecha:new Date().toLocaleDateString("es-CO")};
-              if(editEvalId){persist("mf4_evaluaciones",evaluaciones.map(e=>e.id===editEvalId?{id:editEvalId,...data}:e),setEvaluaciones);}
-              else{const id=uid();persist("mf4_evaluaciones",[...evaluaciones,{id,...data}],setEvaluaciones);}
-              setFMsg("✓ Guardado.");
-              setTimeout(()=>{resetEval();irA("empleado");},1000);
+              if(editEvalId){await setDoc("evaluaciones",editEvalId,{...data,id:editEvalId});setEvaluaciones(p=>p.map(e=>e.id===editEvalId?{id:editEvalId,...data}:e));}
+              else{const id=uid();await setDoc("evaluaciones",id,{...data,id});setEvaluaciones(p=>[...p,{id,...data}]);}
+              setFMsg("✓ Guardado.");setTimeout(()=>{resetEval();irA("empleado");},1000);
             }}>{editEvalId?"Guardar cambios":"Guardar evaluación"}</button>
           </div>
         </div>
@@ -786,17 +656,14 @@ export default function App(){
     );
   }
 
-  // ── AUTOEVALUACIÓN ──
   if(pagina==="nueva_auto"&&empleado){
     const nr=Object.values(aP).filter(v=>typeof v==="number").length;
     return(
       <div style={{minHeight:"100vh",background:"#f5f6fa"}}>
-        <style>{CSS}</style>
         <div style={{maxWidth:860,margin:"0 auto",padding:"24px 20px"}}>
           <TopBar titulo={editAutoId?"Editar autoevaluación":"Nueva autoevaluación"} sub={empleado.nombre} back={()=>{resetAuto();irA("empleado");}}/>
           {aMsg&&<div style={{background:aMsg.startsWith("✓")?"#e1f5ee":"#fcebeb",color:aMsg.startsWith("✓")?"#0F6E56":"#E24B4A",borderRadius:8,padding:"10px 16px",marginBottom:14,fontWeight:500,fontSize:13}}>{aMsg}</div>}
-          <div className="card">
-            <div className="sec-title">Autoevaluación — {empleado.nombre}</div>
+          <div className="card"><div className="sec-title">Autoevaluación — {empleado.nombre}</div>
             <div style={{fontSize:12,color:"#888",marginBottom:8}}>5=Muy alto · 4=Alto · 3=Medio · 2=Bajo · 1=Muy bajo</div>
             <div className="prog"><div className="prog-fill" style={{width:`${nr/AQ.length*100}%`,background:"#185FA5"}}/></div>
             <div style={{fontSize:11,color:"#aaa",marginTop:4}}>{nr}/{AQ.length} respondidas</div>
@@ -810,20 +677,14 @@ export default function App(){
               <input value={aResp[q.id]||""} onChange={e=>setAResp(p=>({...p,[q.id]:e.target.value}))} placeholder="Respuesta adicional (opcional)..." style={{fontSize:12}}/>
             </div>
           ))}
-          <div className="card">
-            <span className="lbl">Reflexión personal (opcional)</span>
-            <div style={{marginTop:2}}>
-              <RichTextEditor value={aObs} onChange={setAObs} placeholder="Escribe una reflexión con formato: negrilla, viñetas, numerado..."/>
-            </div>
-          </div>
+          <div className="card"><span className="lbl">Reflexión personal (opcional)</span><div style={{marginTop:4}}><RichTextEditor value={aObs} onChange={setAObs} placeholder="Escribe una reflexión con formato: negrilla, viñetas, numerado..."/></div></div>
           <div style={{display:"flex",gap:8,justifyContent:"flex-end",marginBottom:24}}>
             <button className="btn btn-outline" onClick={()=>{resetAuto();irA("empleado");}}>Cancelar</button>
-            <button className="btn btn-blue" onClick={()=>{
+            <button className="btn btn-blue" onClick={async()=>{
               const data={empleado_id:empActivo,puntajes:{...aP},respuestas:{...aResp},observaciones:aObs,fecha:new Date().toLocaleDateString("es-CO")};
-              if(editAutoId){persist("mf4_autoevals",autoevals.map(a=>a.id===editAutoId?{id:editAutoId,...data}:a),setAutoevals);}
-              else{const id=uid();persist("mf4_autoevals",[...autoevals,{id,...data}],setAutoevals);}
-              setAMsg("✓ Guardado.");
-              setTimeout(()=>{resetAuto();irA("empleado");},1000);
+              if(editAutoId){await setDoc("autoevals",editAutoId,{...data,id:editAutoId});setAutoevals(p=>p.map(a=>a.id===editAutoId?{id:editAutoId,...data}:a));}
+              else{const id=uid();await setDoc("autoevals",id,{...data,id});setAutoevals(p=>[...p,{id,...data}]);}
+              setAMsg("✓ Guardado.");setTimeout(()=>{resetAuto();irA("empleado");},1000);
             }}>{editAutoId?"Guardar cambios":"Guardar autoevaluación"}</button>
           </div>
         </div>
@@ -833,3 +694,9 @@ export default function App(){
 
   return <div style={{padding:40,color:"#888"}}>Cargando...</div>;
 }
+
+const root=ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
